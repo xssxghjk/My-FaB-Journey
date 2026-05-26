@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report – FaB Tournament Reports</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap">
+  <script src="../nav.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1c1814; --surface: #252018; --surface2: #2e271d;
+      --border: #3a3025; --border2: #4a3e2e; --accent: #c4864a;
+      --accent-dim: rgba(196,134,74,0.10); --text: #e8dfd0;
+      --muted: #9a8a76; --muted2: #b5a48e; --muted-2: #5a4e40;
+      --t1: #c4864a; --t1-bg: rgba(196,134,74,0.08); --t1-border: rgba(196,134,74,0.22);
+      --t2: #d4924a; --t2-bg: rgba(212,146,74,0.08); --t2-border: rgba(212,146,74,0.22);
+      --t3: #5ab4cc; --t3-bg: rgba(90,180,204,0.08); --t3-border: rgba(90,180,204,0.22);
+      --t4: #a07ae8; --t4-bg: rgba(160,122,232,0.08); --t4-border: rgba(160,122,232,0.22);
+      --win: #7ab87a; --win-bg: rgba(122,184,122,0.10);
+      --loss: #c4864a; --loss-bg: rgba(196,134,74,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; -webkit-font-smoothing: antialiased; line-height: 1.6; min-height: 100vh; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px), radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 4px 4px, 6px 6px; background-position: 0 0, 2px 2px; }
+    .page-header { padding: 2rem 1.5rem 1.5rem; border-bottom: 2px solid var(--text); position: relative; z-index: 1; }
+    .page-header-inner { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    .header-left { width: 100%; }
+    .report-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .tier-badge { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px; border: 1px solid; }
+    .tier-badge.t1 { color: var(--t1); background: var(--t1-bg); border-color: var(--t1-border); }
+    .tier-badge.t2 { color: var(--t2); background: var(--t2-bg); border-color: var(--t2-border); }
+    .tier-badge.t3 { color: var(--t3); background: var(--t3-bg); border-color: var(--t3-border); }
+    .tier-badge.t4 { color: var(--t4); background: var(--t4-bg); border-color: var(--t4-border); }
+    .hero-badge { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); }
+    .format-badge { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px; background: var(--t3-bg); border: 1px solid var(--t3-border); color: var(--t3); }
+    .report-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; font-style: italic; letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.4rem; }
+    .header-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; font-style: italic; }
+    .meta-date { color: var(--muted2); } .meta-sep { color: var(--border2); user-select: none; }
+    .meta-record { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; }
+    .rr-win { color: var(--win); } .rr-loss { color: var(--loss); } .rr-sep { color: var(--muted); }
+    .meta-winrate { color: var(--muted2); }
+    .header-links { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .header-link-btn { display: inline-flex; align-items: center; gap: 0.35rem; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem; font-style: italic; padding: 0.3rem 0.75rem; border-radius: 2px; border: 1px solid var(--border2); color: var(--muted2); background: var(--surface2); text-decoration: none; transition: border-color 0.12s, color 0.12s; }
+    .header-link-btn:hover { border-color: var(--muted2); color: var(--text); }
+    .main { max-width: 1000px; width: 100%; margin: 0 auto; padding: 2.5rem 2rem 5rem; display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem; align-items: start; position: relative; z-index: 1; }
+    .sidebar { display: flex; flex-direction: column; gap: 1px; position: sticky; top: 68px; border-left: 2px solid var(--border2); padding-left: 1rem; }
+    .sidebar-label { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted2); margin-bottom: 0.75rem; }
+    .summary-text { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem; font-style: italic; color: var(--muted2); line-height: 1.75; }
+    .general-notes { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .general-notes-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .count-pill { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; padding: 0.1rem 0.4rem; border-radius: 2px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); }
+    .notes-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .notes-list li { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; font-style: italic; color: var(--muted2); line-height: 1.65; padding-left: 1rem; position: relative; }
+    .notes-list li::before { content: '–'; position: absolute; left: 0; color: var(--muted); font-size: 0.75rem; }
+    .notes-list li.section-header { font-size: 0.65rem; font-style: italic; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); padding-left: 0; margin-top: 0.75rem; }
+    .notes-list li.section-header::before { content: ''; }
+    .rounds-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .rounds-title { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .rounds-header-line { flex: 1; height: 1px; background: var(--border); }
+    .rounds-summary { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; font-style: italic; color: var(--muted); }
+    .rounds-list { display: flex; flex-direction: column; border-top: 1px solid var(--border2); }
+    .round-row { display: grid; grid-template-columns: 48px 1fr auto; gap: 0; position: relative; border-left: 2px solid transparent; transition: background 0.1s, border-left-color 0.12s; }
+    .round-row.win  { border-left-color: rgba(122,184,122,0.3); }
+    .round-row.loss { border-left-color: rgba(196,134,74,0.3); }
+    .round-row:hover { background: var(--surface); }
+    .round-row:not(:last-child) .round-connector::after { content: ''; position: absolute; left: 23px; top: 52px; bottom: 0; width: 1px; background: var(--border2); }
+    .round-connector { display: flex; flex-direction: column; align-items: center; padding-top: 14px; position: relative; }
+    .round-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface2); flex-shrink: 0; position: relative; z-index: 1; }
+    .round-row.win  .round-dot { border-color: var(--win);  background: rgba(122,184,122,0.2); }
+    .round-row.loss .round-dot { border-color: var(--loss); background: rgba(196,134,74,0.2); }
+    .round-body { padding: 0.65rem 0 1.1rem 0.25rem; border-bottom: 1px solid var(--border); min-width: 0; }
+    .round-row:last-child .round-body { border-bottom: none; }
+    .round-top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+    .round-num { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; min-width: 28px; }
+    .round-opponent { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.05rem; font-weight: 700; font-style: italic; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .round-badges { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; padding: 0.65rem 0 1.1rem 1rem; border-bottom: 1px solid var(--border); }
+    .round-row:last-child .round-badges { border-bottom: none; }
+    .round-result { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 2px; flex-shrink: 0; }
+    .round-result.win  { color: var(--win);  background: var(--win-bg);  border: 1px solid rgba(122,184,122,0.3); }
+    .round-result.loss { color: var(--loss); background: var(--loss-bg); border: 1px solid rgba(196,134,74,0.3); }
+    .round-score { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; font-style: italic; color: var(--muted); }
+    .round-order { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.45rem; border-radius: 2px; border: 1px solid; }
+    .round-order.first  { color: var(--t2); background: var(--t2-bg); border-color: var(--t2-border); }
+    .round-order.second { color: var(--t3); background: var(--t3-bg); border-color: var(--t3-border); }
+    .round-notes { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.15rem; }
+    .round-notes li { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.8rem; font-style: italic; color: var(--muted); line-height: 1.6; padding-left: 0.85rem; position: relative; }
+    .round-notes li::before { content: '–'; position: absolute; left: 0; color: var(--border2); font-size: 0.75rem; }
+    .day-divider { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0 0.6rem 48px; }
+    .day-divider-label { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted2); white-space: nowrap; flex-shrink: 0; }
+    .day-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .not-found { text-align: center; padding: 5rem 1rem; color: var(--muted); font-family: 'DM Serif Text', Georgia, serif; font-style: italic; }
+    .not-found h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2rem; font-weight: 900; font-style: italic; margin-bottom: 0.75rem; color: var(--text); }
+    @media (max-width: 800px) { .main { grid-template-columns: 1fr; padding: 1.5rem 1.25rem 4rem; gap: 1.5rem; } .sidebar { display: none; } .page-header { padding: 1.5rem 1.25rem 1.25rem; } }
+    @media (max-width: 480px) { .round-row { grid-template-columns: 36px 1fr; } .round-badges { grid-column: 2; padding-top: 0; border-bottom: none; padding-bottom: 0.5rem; } .round-body { padding-bottom: 0.4rem; border-bottom: none; } }
+    footer { padding: 1.75rem 2rem; font-size: 0.78rem; font-style: italic; color: var(--muted-2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div id="page-content"></div>
+
+  <footer>
+    <span id="page-version" style="opacity:0.65"></span>
+    <a href="https://github.com/xssxghjk/My-FaB-Journey" target="_blank" rel="noopener">View on GitHub</a>
+    <span id="storage-size"></span>
+  </footer>
+  <script>fetch('../version.json').then(r=>r.json()).then(v=>{var e=document.getElementById('page-version');if(e)e.textContent='v'+v.version}).catch(()=>{});</script>
+<script>(function(){var u=0;try{for(var k in localStorage){if(Object.prototype.hasOwnProperty.call(localStorage,k))u+=(k.length+localStorage[k].length)*2}}catch(e){}var pct=+(u/(5*1024*1024)*100).toFixed(1),el=document.getElementById('storage-size');if(el){el.textContent='Storage: '+pct+'%';el.style.opacity=0.65;if(pct>90)el.style.color='#f87171';else if(pct>70)el.style.color='#fbbf24';}})();</script>
+
+  <script src="reports.js"></script>
+  <script>
+  (function () {
+    const TIER_INFO = {
+      RTN: { tier: 1, label: 'Tier 1 · RTN' }, PQ: { tier: 1, label: 'Tier 1 · PQ' },
+      Battleground: { tier: 2, label: 'Tier 2 · Battleground' }, Showdown: { tier: 2, label: 'Tier 2 · Showdown' },
+      Calling: { tier: 3, label: 'Tier 3 · Calling' }, Worlds: { tier: 4, label: 'Tier 4 · Worlds' }, PT: { tier: 4, label: 'Tier 4 · Pro Tour' },
+    };
+    function getTierLabel(eventType) { return (TIER_INFO[eventType] || { label: 'Tier ? · ' + eventType }).label; }
+    function computeRecord(rounds) {
+      return { wins: rounds.filter(r => r.result === 'win').length, losses: rounds.filter(r => r.result === 'loss').length };
+    }
+    function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function renderRound(round) {
+      const notesHtml = round.notes && round.notes.length ? `<ul class="round-notes">${round.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : '';
+      const scoreHtml = round.score ? `<span class="round-score">${esc(round.score)}</span>` : '';
+      const order = round.order || null;
+      const orderHtml = order ? `<span class="round-order ${order}">${order === 'first' ? '1st' : '2nd'}</span>` : '';
+      const roundLabel = round.stage || `R${round.number}`;
+      return `
+        <div class="round-row ${round.result}">
+          <div class="round-connector"><div class="round-dot"></div></div>
+          <div class="round-body">
+            <div class="round-top"><span class="round-num">${esc(roundLabel)}</span><span class="round-opponent">${esc(round.opponent)}</span></div>
+            ${notesHtml}
+          </div>
+          <div class="round-badges">
+            <span class="round-result ${round.result}">${round.result === 'win' ? 'W' : 'L'}</span>
+            ${scoreHtml}${orderHtml}
+          </div>
+        </div>`;
+    }
+
+    function renderDetail(r) {
+      const rec = computeRecord(r.rounds);
+      const tierLabel = getTierLabel(r.eventType);
+      const tier = r.tier != null ? r.tier : ((TIER_INFO[r.eventType] || { tier: 1 }).tier);
+      const tierClass = `t${tier}`;
+      const sortedRounds = [...r.rounds].sort((a, b) => a.number - b.number);
+      let roundsHtml = '', day2Inserted = false;
+      for (const round of sortedRounds) {
+        if (r.day1End && !day2Inserted && round.number > r.day1End) {
+          day2Inserted = true;
+          roundsHtml += `<div class="day-divider"><span class="day-divider-label">Day 2</span><div class="day-divider-line"></div></div>`;
+        }
+        roundsHtml += renderRound(round);
+      }
+      const winRate = rec.wins + rec.losses > 0 ? Math.round(rec.wins / (rec.wins + rec.losses) * 100) : 0;
+      const formatHtml = r.format ? `<span class="format-badge">${esc(r.format)}</span>` : '';
+      const prepLinkHtml = r.prepId ? `<div class="header-links"><a class="header-link-btn" href="../tcg-tournament-prep/detail.html?id=${encodeURIComponent(r.prepId)}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Tournament Prep</a></div>` : '';
+      const generalNotesHtml = r.generalNotes && r.generalNotes.length ? `<div class="general-notes"><div class="general-notes-header"><span class="rounds-title">General Notes</span><div class="rounds-header-line"></div><span class="count-pill">${r.generalNotes.length}</span></div><ul class="notes-list">${r.generalNotes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : '';
+      const spectatorCount = r.spectatorNotes ? r.spectatorNotes.filter(n => !n.startsWith('> ')).length : 0;
+      const spectatorNotesHtml = r.spectatorNotes && r.spectatorNotes.length ? `<div class="general-notes"><div class="general-notes-header"><span class="rounds-title">Spectator Notes</span><div class="rounds-header-line"></div><span class="count-pill">${spectatorCount}</span></div><ul class="notes-list">${r.spectatorNotes.map(n => n.startsWith('> ') ? `<li class="section-header">${esc(n.slice(2))}</li>` : `<li>${esc(n)}</li>`).join('')}</ul></div>` : '';
+      return `
+        <header class="page-header tier-${tier}">
+          <div class="page-header-inner"><div class="header-left">
+            <div class="report-meta"><span class="tier-badge ${tierClass}">${esc(tierLabel)}</span><span class="hero-badge">${esc(r.hero)}</span>${formatHtml}</div>
+            <h1 class="report-title">${esc(r.event)}</h1>
+            <div class="header-meta"><span class="meta-date">${esc(r.displayDate)}</span><span class="meta-sep">·</span><span class="meta-record"><span class="rr-win">${rec.wins}W</span><span class="rr-sep">–</span><span class="rr-loss">${rec.losses}L</span></span><span class="meta-sep">·</span><span class="meta-winrate">${winRate}%</span></div>
+            ${prepLinkHtml}
+          </div></div>
+        </header>
+        <div class="main">
+          ${r.summary ? `<aside class="sidebar"><div class="sidebar-label">Summary</div><p class="summary-text">${esc(r.summary)}</p></aside>` : ''}
+          <section class="rounds-section">
+            <div class="rounds-header"><span class="rounds-title">Round by Round</span><div class="rounds-header-line"></div><span class="rounds-summary">${rec.wins}W – ${rec.losses}L</span></div>
+            <div class="rounds-list">${roundsHtml}</div>
+            ${generalNotesHtml}${spectatorNotesHtml}
+          </section>
+        </div>`;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const report = REPORTS.find(r => r.id === id);
+    const container = document.getElementById('page-content');
+    if (!report) {
+      container.innerHTML = `<div class="not-found"><h2>Report not found</h2><p>The report <strong>${esc(id || '')}</strong> doesn't exist.</p><p style="margin-top:1rem"><a href="./" style="color:var(--accent)">← Back to all reports</a></p></div>`;
+    } else {
+      document.title = `${report.event} – FaB Tournament Reports`;
+      container.innerHTML = renderDetail(report);
+    }
+  })();
+  </script>
+
+</body>
+</html>

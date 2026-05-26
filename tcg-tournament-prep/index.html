@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FaB Tournament Prep</title>
+  <script src="../nav.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1c1814; --surface: #252018; --surface2: #2e271d;
+      --border: #3a3025; --border2: #4a3e2e; --accent: #c4864a;
+      --accent-bg: rgba(196,134,74,0.08); --accent-border: rgba(196,134,74,0.25); --accent-dim: rgba(196,134,74,0.10);
+      --text: #e8dfd0; --muted: #9a8a76; --muted2: #b5a48e; --muted-2: #5a4e40;
+      --t1: #c4864a; --t1-bg: rgba(196,134,74,0.08); --t1-border: rgba(196,134,74,0.22);
+      --t2: #d4924a; --t2-bg: rgba(212,146,74,0.08); --t2-border: rgba(212,146,74,0.22);
+      --t3: #5ab4cc; --t3-bg: rgba(90,180,204,0.08); --t3-border: rgba(90,180,204,0.22);
+      --t4: #a07ae8; --t4-bg: rgba(160,122,232,0.08); --t4-border: rgba(160,122,232,0.22);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px), radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 4px 4px, 6px 6px; background-position: 0 0, 2px 2px; }
+    .hero, .filter-toggle-bar, .filter-panel, .main, footer { position: relative; z-index: 1; }
+    .hero { padding: 2rem 1.5rem 1.5rem; border-bottom: 2px solid var(--text); }
+    .hero-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap; }
+    .hero h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; font-style: italic; letter-spacing: -0.02em; line-height: 1; }
+    .hero p { color: var(--muted); font-size: 0.9rem; font-style: italic; }
+    .hero-stats { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; margin-top: 0.5rem; }
+    .stat-pill { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; font-style: italic; padding: 0.3rem 0.75rem; border-radius: 2px; background: var(--surface); border: 1px solid var(--border2); color: var(--muted2); }
+    .stat-pill.accent { color: var(--accent); background: var(--accent-bg); border-color: var(--accent-border); }
+    .filter-toggle-bar { padding: 0.55rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; background: var(--surface); }
+    .filter-toggle-btn { display: flex; align-items: center; gap: 0.4rem; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0.65rem; border-radius: 2px; background: transparent; border: 1px solid var(--border2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .filter-toggle-btn:hover { border-color: var(--muted2); color: var(--text); }
+    .filter-toggle-btn.has-filters { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+    .filter-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 1.1rem; height: 1.1rem; border-radius: 999px; background: var(--accent); color: var(--bg); font-size: 0.65rem; font-weight: 700; padding: 0 0.25rem; }
+    .filter-active-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; }
+    .filter-active-tag { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; padding: 0.12rem 0.5rem; border-radius: 2px; background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; }
+    .filter-active-tag:hover { background: rgba(196,134,74,0.14); }
+    .filter-active-tag .remove { opacity: 0.7; font-size: 0.8rem; line-height: 1; }
+    .filter-panel { border-bottom: 1px solid var(--border); background: var(--surface2); overflow: hidden; max-height: 0; transition: max-height 0.22s ease, padding 0.22s ease; padding: 0 1.5rem; }
+    .filter-panel.open { max-height: 80px; padding: 0.85rem 1.5rem; }
+    .filter-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-label { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; min-width: 2.5rem; }
+    .filter-pills { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .filter-pill { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; padding: 0.2rem 0.55rem; border-radius: 2px; background: transparent; border: 1px solid var(--border2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .filter-pill:hover { border-color: var(--muted2); color: var(--text); }
+    .filter-pill.active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+    .filter-pill.t4.active { background: var(--t4-bg); border-color: var(--t4-border); color: var(--t4); }
+    .filter-pill.t3.active { background: var(--t3-bg); border-color: var(--t3-border); color: var(--t3); }
+    .filter-pill.t2.active { background: var(--t2-bg); border-color: var(--t2-border); color: var(--t2); }
+    .filter-pill.t1.active { background: var(--t1-bg); border-color: var(--t1-border); color: var(--t1); }
+    .main { max-width: 1000px; width: 100%; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+    .no-results { text-align: center; padding: 3rem; color: var(--muted); font-style: italic; font-size: 0.9rem; }
+    .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+    .prep-tile { display: block; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; border-top: 2px solid var(--border2); transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
+    .prep-tile:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.45); border-color: var(--border2); }
+    .prep-tile.tier-1 { border-top-color: var(--t1); } .prep-tile.tier-2 { border-top-color: var(--t2); }
+    .prep-tile.tier-3 { border-top-color: var(--t3); } .prep-tile.tier-4 { border-top-color: var(--t4); }
+    .tile-body { padding: 1.1rem 1.25rem 0.9rem; position: relative; overflow: hidden; }
+    .tile-body::after { content: attr(data-tier-label); position: absolute; bottom: -0.5rem; right: 0.5rem; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 900; font-style: italic; font-size: 4rem; line-height: 1; color: rgba(255,255,255,0.025); pointer-events: none; user-select: none; }
+    .tile-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+    .tier-badge { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 2px; border: 1px solid; }
+    .tier-badge.t1 { color: var(--t1); background: var(--t1-bg); border-color: var(--t1-border); }
+    .tier-badge.t2 { color: var(--t2); background: var(--t2-bg); border-color: var(--t2-border); }
+    .tier-badge.t3 { color: var(--t3); background: var(--t3-bg); border-color: var(--t3-border); }
+    .tier-badge.t4 { color: var(--t4); background: var(--t4-bg); border-color: var(--t4-border); }
+    .tile-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.05rem; font-weight: 700; font-style: italic; line-height: 1.25; margin-bottom: 0.7rem; }
+    .tile-formats { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.5rem; align-items: center; }
+    .format-pill { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.14rem 0.5rem; border-radius: 2px; background: var(--t3-bg); border: 1px solid var(--t3-border); color: var(--t3); }
+    .format-hero { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem; font-style: italic; color: var(--muted2); }
+    .tile-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.4rem; }
+    .tile-date { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem; font-style: italic; color: var(--muted); }
+    .tile-cta { display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 1.25rem; border-top: 1px solid var(--border); font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; font-style: italic; color: var(--muted); transition: color 0.15s, background 0.15s; }
+    .prep-tile:hover .tile-cta { color: var(--muted2); background: rgba(232,223,208,0.04); }
+    .tile-cta-arrow { margin-left: auto; font-size: 1rem; transition: transform 0.15s; }
+    .prep-tile:hover .tile-cta-arrow { transform: translateX(3px); }
+    @media (max-width: 768px) { .tiles-grid { grid-template-columns: 1fr; } .hero { padding: 1.75rem 1.25rem 1.5rem; } .filter-toggle-bar { padding: 0.55rem 1.25rem; } }
+    footer { padding: 1.75rem 2rem; font-size: 0.78rem; font-style: italic; color: var(--muted-2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Tournament Prep</h1>
+      <p>Format-by-format preparation notes, meta predictions, and hero picks for upcoming events.</p>
+      <div class="hero-stats" id="hero-stats"></div>
+    </div>
+  </header>
+
+  <div class="filter-toggle-bar">
+    <button class="filter-toggle-btn" id="filter-toggle-btn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 2.5h10M3 6h6M5 9.5h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      Filter
+      <span class="filter-badge" id="filter-badge" style="display:none"></span>
+    </button>
+    <div class="filter-active-tags" id="filter-active-tags"></div>
+  </div>
+  <div class="filter-panel" id="filter-panel">
+    <div class="filter-group">
+      <span class="filter-label">Tier</span>
+      <div class="filter-pills" id="tier-filter"></div>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="tiles-grid" id="preps-container"></div>
+    <div class="no-results" id="no-results" style="display:none">No prep entries match the selected filters.</div>
+  </main>
+
+  <footer>
+    <span id="page-version" style="opacity:0.65"></span>
+    <a href="https://github.com/xssxghjk/My-FaB-Journey" target="_blank" rel="noopener">View on GitHub</a>
+    <span id="storage-size"></span>
+  </footer>
+  <script>fetch('../version.json').then(r=>r.json()).then(v=>{var e=document.getElementById('page-version');if(e)e.textContent='v'+v.version}).catch(()=>{});</script>
+<script>(function(){var u=0;try{for(var k in localStorage){if(Object.prototype.hasOwnProperty.call(localStorage,k))u+=(k.length+localStorage[k].length)*2}}catch(e){}var pct=+(u/(5*1024*1024)*100).toFixed(1),el=document.getElementById('storage-size');if(el){el.textContent='Storage: '+pct+'%';el.style.opacity=0.65;if(pct>90)el.style.color='#f87171';else if(pct>70)el.style.color='#fbbf24';}})();</script>
+
+  <script src="preps.js"></script>
+  <script>
+  (function () {
+    const TIER_INFO = {
+      RTN: { tier: 1, label: 'Tier 1 · RTN' }, PQ: { tier: 1, label: 'Tier 1 · PQ' },
+      Battleground: { tier: 2, label: 'Tier 2 · Battleground' }, Showdown: { tier: 2, label: 'Tier 2 · Showdown' },
+      Calling: { tier: 3, label: 'Tier 3 · Calling' }, Worlds: { tier: 4, label: 'Tier 4 · Worlds' }, PT: { tier: 4, label: 'Tier 4 · Pro Tour' },
+    };
+    function getTierLabel(eventType) { return (TIER_INFO[eventType] || { label: 'Tier ? · ' + eventType }).label; }
+    function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    PREPS.sort((a, b) => (a.date < b.date ? 1 : -1));
+    function renderTile(p) {
+      const tierLabel = getTierLabel(p.eventType);
+      const tierClass = `t${p.tier}`;
+      const formatsHtml = p.formats.map(f =>
+        `<span class="format-pill">${esc(f.abbr)}</span><span class="format-hero">${esc(f.hero)}</span>`
+      ).join('');
+      return `
+        <a class="prep-tile tier-${p.tier}" href="./detail.html?id=${esc(p.id)}" data-tier="${p.tier}">
+          <div class="tile-body" data-tier-label="T${p.tier}">
+            <div class="tile-meta"><span class="tier-badge ${tierClass}">${esc(tierLabel)}</span></div>
+            <div class="tile-title">${esc(p.event)}</div>
+            <div class="tile-formats">${formatsHtml}</div>
+            <div class="tile-footer"><span class="tile-date">${esc(p.displayDate)}</span></div>
+          </div>
+          <div class="tile-cta">View prep<span class="tile-cta-arrow">→</span></div>
+        </a>`;
+    }
+    let activeTier = 'all';
+    const tierLabels = { 1: 'RTN / PQ', 2: 'BG / Show', 3: 'Calling', 4: 'Worlds / PT' };
+    function updateFilterUI() {
+      const activeCount = activeTier !== 'all' ? 1 : 0;
+      const badge = document.getElementById('filter-badge');
+      const btn   = document.getElementById('filter-toggle-btn');
+      const tags  = document.getElementById('filter-active-tags');
+      badge.style.display = activeCount > 0 ? '' : 'none';
+      badge.textContent = activeCount;
+      btn.classList.toggle('has-filters', activeCount > 0);
+      const parts = [];
+      if (activeTier !== 'all') parts.push({ label: tierLabels[activeTier] || 'Tier ' + activeTier, type: 'tier' });
+      tags.innerHTML = parts.map(p =>
+        `<span class="filter-active-tag" data-clear="${p.type}">${esc(p.label)}<span class="remove">×</span></span>`
+      ).join('');
+      tags.querySelectorAll('.filter-active-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+          activeTier = 'all';
+          document.querySelectorAll('[data-ftype="tier"]').forEach(b => b.classList.toggle('active', b.dataset.fval === 'all'));
+          applyFilters();
+        });
+      });
+    }
+    function applyFilters() {
+      const tiles = document.querySelectorAll('.prep-tile');
+      let visible = 0;
+      tiles.forEach(tile => {
+        const tierMatch = activeTier === 'all' || tile.dataset.tier === activeTier;
+        tile.style.display = tierMatch ? '' : 'none';
+        if (tierMatch) visible++;
+      });
+      document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+      updateFilterUI();
+    }
+    function buildFilters() {
+      const tiers = [...new Set(PREPS.map(p => p.tier))].sort();
+      const tierEl = document.getElementById('tier-filter');
+      tierEl.innerHTML = `<button class="filter-pill active" data-ftype="tier" data-fval="all">All</button>` +
+        tiers.map(t => `<button class="filter-pill t${t}" data-ftype="tier" data-fval="${t}">${esc(tierLabels[t] || 'Tier ' + t)}</button>`).join('');
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const fval = btn.dataset.fval;
+          activeTier = fval;
+          document.querySelectorAll('[data-ftype="tier"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applyFilters();
+        });
+      });
+      document.getElementById('filter-toggle-btn').addEventListener('click', () => {
+        document.getElementById('filter-panel').classList.toggle('open');
+      });
+    }
+    function buildStats() {
+      const totalFormats = PREPS.reduce((acc, p) => acc + p.formats.length, 0);
+      document.getElementById('hero-stats').innerHTML =
+        `<span class="stat-pill"><span class="count-num" data-target="${PREPS.length}">0</span> event${PREPS.length !== 1 ? 's' : ''}</span>` +
+        `<span class="stat-pill accent"><span class="count-num" data-target="${totalFormats}">0</span> format${totalFormats !== 1 ? 's' : ''} prepped</span>`;
+    }
+    function init() {
+      document.getElementById('preps-container').innerHTML = PREPS.map(renderTile).join('');
+      buildStats();
+      buildFilters();
+      document.querySelectorAll('.count-num').forEach(el => {
+        const target = parseInt(el.dataset.target, 10);
+        if (!target) return;
+        const duration = 900, start = performance.now();
+        const step = now => {
+          const t = Math.min((now - start) / duration, 1);
+          el.textContent = Math.round(t * t * target);
+          if (t < 1) requestAnimationFrame(step); else el.textContent = target;
+        };
+        requestAnimationFrame(step);
+      });
+    }
+    init();
+  })();
+  </script>
+
+</body>
+</html>
