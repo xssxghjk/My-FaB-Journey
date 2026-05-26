@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FaB Tournament Reports</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap">
+  <script src="../nav.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1c1814;
+      --surface: #252018;
+      --surface2: #2e271d;
+      --border: #3a3025;
+      --border2: #4a3e2e;
+      --accent: #c4864a;
+      --accent-bg: rgba(196,134,74,0.08);
+      --accent-border: rgba(196,134,74,0.25);
+      --accent-dim: rgba(196,134,74,0.10);
+      --text: #e8dfd0;
+      --muted: #9a8a76;
+      --muted2: #b5a48e;
+      --muted-2: #5a4e40;
+      --t1: #c4864a;
+      --t1-bg: rgba(196,134,74,0.08);
+      --t1-border: rgba(196,134,74,0.22);
+      --t2: #d4924a;
+      --t2-bg: rgba(212,146,74,0.08);
+      --t2-border: rgba(212,146,74,0.22);
+      --t3: #5ab4cc;
+      --t3-bg: rgba(90,180,204,0.08);
+      --t3-border: rgba(90,180,204,0.22);
+      --t4: #a07ae8;
+      --t4-bg: rgba(160,122,232,0.08);
+      --t4-border: rgba(160,122,232,0.22);
+      --win: #7ab87a;
+      --win-bg: rgba(122,184,122,0.10);
+      --loss: #c4864a;
+      --loss-bg: rgba(196,134,74,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Serif Text', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 4px 4px, 6px 6px;
+      background-position: 0 0, 2px 2px;
+    }
+
+    .hero {
+      padding: 2rem 1.5rem 1.5rem;
+      border-bottom: 2px solid var(--text);
+      position: relative;
+      z-index: 1;
+    }
+    .hero-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap; }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .hero p { color: var(--muted); font-size: 0.9rem; font-style: italic; }
+    .hero-stats { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; margin-top: 0.5rem; }
+    .stat-pill {
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.78rem;
+      font-style: italic;
+      padding: 0.3rem 0.75rem;
+      border-radius: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+    }
+    .stat-pill.win  { color: var(--win);  background: var(--win-bg);  border-color: rgba(122,184,122,0.3); }
+    .stat-pill.loss { color: var(--loss); background: var(--loss-bg); border-color: rgba(196,134,74,0.3); }
+    .stat-pill.wr   { color: var(--accent); background: var(--accent-dim); border-color: rgba(196,134,74,0.3); }
+
+    .filter-toggle-bar {
+      padding: 0.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--surface);
+      position: relative;
+      z-index: 1;
+    }
+    .filter-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.75rem;
+      font-style: italic;
+      padding: 0.25rem 0.65rem;
+      border-radius: 2px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .filter-toggle-btn:hover { border-color: var(--muted2); color: var(--text); }
+    .filter-toggle-btn.has-filters {
+      background: var(--accent-dim);
+      border-color: rgba(196,134,74,0.4);
+      color: var(--accent);
+    }
+    .filter-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0 0.25rem;
+    }
+    .filter-active-tags {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-active-tag {
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.72rem;
+      font-style: italic;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(196,134,74,0.3);
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .filter-active-tag:hover { background: rgba(196,134,74,0.16); }
+    .filter-active-tag .remove { opacity: 0.7; font-size: 0.9rem; line-height: 1; }
+
+    .filter-panel {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.22s ease, padding 0.22s ease;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .filter-panel.open { max-height: 220px; padding: 0.85rem 1.5rem; }
+    .filter-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-label {
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.65rem;
+      font-style: italic;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 2.5rem;
+    }
+    .filter-pills { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .filter-pill {
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.72rem;
+      font-style: italic;
+      padding: 0.2rem 0.55rem;
+      border-radius: 2px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .filter-pill:hover { border-color: var(--muted2); color: var(--text); }
+    .filter-pill.active { background: var(--accent-dim); border-color: rgba(196,134,74,0.4); color: var(--accent); }
+    .filter-pill.t1.active { background: var(--t1-bg); border-color: var(--t1-border); color: var(--t1); }
+    .filter-pill.t2.active { background: var(--t2-bg); border-color: var(--t2-border); color: var(--t2); }
+    .filter-pill.t3.active { background: var(--t3-bg); border-color: var(--t3-border); color: var(--t3); }
+    .filter-pill.t4.active { background: var(--t4-bg); border-color: var(--t4-border); color: var(--t4); }
+
+    .main { max-width: 1000px; width: 100%; margin: 2rem auto; padding: 0 1.5rem 4rem; position: relative; z-index: 1; }
+    .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.85rem; font-style: italic; }
+
+    .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+
+    .report-tile {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+      overflow: hidden; border-top: 2px solid var(--border2);
+      transition: border-color 0.2s, box-shadow 0.2s; position: relative;
+    }
+    .report-tile:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.45); border-color: var(--border2); }
+    .report-tile.tier-1 { border-top-color: var(--t1); }
+    .report-tile.tier-2 { border-top-color: var(--t2); }
+    .report-tile.tier-3 { border-top-color: var(--t3); }
+    .report-tile.tier-4 { border-top-color: var(--t4); }
+
+    .tile-body { padding: 1.1rem 1.25rem 0.9rem; position: relative; overflow: hidden; }
+    .tile-body::after {
+      content: attr(data-tier-label); position: absolute; bottom: -0.5rem; right: 0.5rem;
+      font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 900; font-style: italic;
+      font-size: 4rem; line-height: 1; color: rgba(255,255,255,0.025); pointer-events: none; user-select: none;
+    }
+    .tile-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+    .tier-badge {
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px; border: 1px solid;
+    }
+    .tier-badge.t1 { color: var(--t1); background: var(--t1-bg); border-color: var(--t1-border); }
+    .tier-badge.t2 { color: var(--t2); background: var(--t2-bg); border-color: var(--t2-border); }
+    .tier-badge.t3 { color: var(--t3); background: var(--t3-bg); border-color: var(--t3-border); }
+    .tier-badge.t4 { color: var(--t4); background: var(--t4-bg); border-color: var(--t4-border); }
+    .hero-badge {
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px;
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2);
+    }
+    .format-badge {
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.65rem; font-style: italic;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: 2px;
+      background: var(--t3-bg); border: 1px solid var(--t3-border); color: var(--t3);
+    }
+    .tile-title {
+      font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.05rem;
+      font-weight: 700; font-style: italic; line-height: 1.25; margin-bottom: 0.7rem; color: var(--text);
+    }
+    .tile-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.4rem; }
+    .tile-date { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; color: var(--muted); }
+    .tile-record { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; font-style: italic; }
+    .rr-win  { color: var(--win); }
+    .rr-loss { color: var(--loss); }
+    .rr-sep  { color: var(--muted); margin: 0 0.15rem; }
+    .tile-cta {
+      display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 1.25rem;
+      border-top: 1px solid var(--border);
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; font-style: italic;
+      color: var(--muted); transition: color 0.15s, background 0.15s;
+    }
+    .report-tile:hover .tile-cta { color: var(--muted2); background: rgba(232,223,208,0.04); }
+    .tile-cta-arrow { margin-left: auto; font-size: 1rem; transition: transform 0.15s; }
+    .report-tile:hover .tile-cta-arrow { transform: translateX(3px); }
+
+    @media (max-width: 768px) {
+      .tiles-grid { grid-template-columns: 1fr; }
+      .hero { padding: 1.75rem 1.25rem 1.5rem; }
+      .filter-toggle-bar { padding: 0.55rem 1.25rem; }
+    }
+
+    footer {
+      padding: 1.75rem 2rem; font-size: 0.78rem; font-style: italic; color: var(--muted-2);
+      border-top: 1px solid var(--border); display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Tournament Reports</h1>
+      <p>Post-event analysis, round-by-round breakdowns, and deck learnings.</p>
+      <div class="hero-stats" id="hero-stats"></div>
+    </div>
+  </header>
+
+  <div class="filter-toggle-bar">
+    <button class="filter-toggle-btn" id="filter-toggle-btn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 2.5h10M3 6h6M5 9.5h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      Filter
+      <span class="filter-badge" id="filter-badge" style="display:none"></span>
+    </button>
+    <div class="filter-active-tags" id="filter-active-tags"></div>
+  </div>
+  <div class="filter-panel" id="filter-panel">
+    <div class="filter-group">
+      <span class="filter-label">Hero</span>
+      <div class="filter-pills" id="hero-filter"></div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Tier</span>
+      <div class="filter-pills" id="tier-filter"></div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Format</span>
+      <div class="filter-pills" id="format-filter"></div>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="tiles-grid" id="reports-container"></div>
+    <div class="no-results" id="no-results" style="display:none">No reports match the selected filters.</div>
+  </main>
+
+  <footer>
+    <span id="page-version" style="opacity:0.65"></span>
+    <a href="https://github.com/xssxghjk/My-FaB-Journey" target="_blank" rel="noopener">View on GitHub</a>
+    <span id="storage-size"></span>
+  </footer>
+  <script>fetch('../version.json').then(r=>r.json()).then(v=>{var e=document.getElementById('page-version');if(e)e.textContent='v'+v.version}).catch(()=>{});</script>
+<script>(function(){var u=0;try{for(var k in localStorage){if(Object.prototype.hasOwnProperty.call(localStorage,k))u+=(k.length+localStorage[k].length)*2}}catch(e){}var pct=+(u/(5*1024*1024)*100).toFixed(1),el=document.getElementById('storage-size');if(el){el.textContent='Storage: '+pct+'%';el.style.opacity=0.65;if(pct>90)el.style.color='#f87171';else if(pct>70)el.style.color='#fbbf24';}})();</script>
+
+  <script src="reports.js"></script>
+  <script>
+  (function () {
+
+    const TIER_INFO = {
+      RTN:          { tier: 1, label: 'Tier 1 · RTN' },
+      PQ:           { tier: 1, label: 'Tier 1 · PQ' },
+      Battleground: { tier: 2, label: 'Tier 2 · Battleground' },
+      Showdown:     { tier: 2, label: 'Tier 2 · Showdown' },
+      Calling:      { tier: 3, label: 'Tier 3 · Calling' },
+      Worlds:       { tier: 4, label: 'Tier 4 · Worlds' },
+      PT:           { tier: 4, label: 'Tier 4 · Pro Tour' },
+    };
+
+    function getTierLabel(eventType) {
+      return (TIER_INFO[eventType] || { label: 'Tier ? · ' + eventType }).label;
+    }
+    function getHeroes(r) { return r.hero.split(' / ').map(h => h.trim().toLowerCase()); }
+    function getFormats(r) { return (r.format || '').split(' / ').map(f => f.trim().toLowerCase()).filter(Boolean); }
+    function getHeroFormatTag(r, heroLower) {
+      const heroes  = r.hero.split(' / ').map(h => h.trim());
+      const formats = (r.format || '').split(' / ').map(f => f.trim());
+      const idx = heroes.findIndex(h => h.toLowerCase() === heroLower);
+      if (idx < 0 || heroes.length <= 1) return null;
+      return formats[idx] ? formats[idx].toLowerCase() : null;
+    }
+    function getRoundTag(round) {
+      if (!round.notes || !round.notes.length) return null;
+      const m = round.notes[0].match(/^\[([^\]]+)\]/);
+      return m ? m[1].toLowerCase() : null;
+    }
+    function computeRecord(rounds, formatTag) {
+      const filtered = formatTag != null ? rounds.filter(rnd => getRoundTag(rnd) === formatTag) : rounds;
+      const wins   = filtered.filter(r => r.result === 'win').length;
+      const losses = filtered.filter(r => r.result === 'loss').length;
+      return { wins, losses };
+    }
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    REPORTS.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+    function renderTile(r) {
+      const heroes  = getHeroes(r);
+      const formats = getFormats(r);
+      const tierLabel = getTierLabel(r.eventType);
+      const tier = getTierForReport(r);
+      const tierClass = `t${tier}`;
+      const recFull = computeRecord(r.rounds);
+      let heroRecAttrs = '';
+      if (heroes.length > 1) {
+        heroes.forEach(h => {
+          const fmtTag = getHeroFormatTag(r, h);
+          const rec = computeRecord(r.rounds, fmtTag);
+          heroRecAttrs += ` data-rec-${h}="${rec.wins}-${rec.losses}"`;
+        });
+      }
+      const formatHtml = r.format ? `<span class="format-badge">${esc(r.format)}</span>` : '';
+      return `
+        <a class="report-tile tier-${tier}" href="./detail.html?id=${esc(r.id)}"
+          data-heroes="${esc(heroes.join(' '))}" data-formats="${esc(formats.join(' '))}"
+          data-tier="${tier}" data-rec-full="${recFull.wins}-${recFull.losses}" ${heroRecAttrs}>
+          <div class="tile-body" data-tier-label="T${tier}">
+            <div class="tile-meta">
+              <span class="tier-badge ${tierClass}">${esc(tierLabel)}</span>
+              <span class="hero-badge">${esc(r.hero)}</span>
+              ${formatHtml}
+            </div>
+            <div class="tile-title">${esc(r.event)}</div>
+            <div class="tile-footer">
+              <span class="tile-date">${esc(r.displayDate)}</span>
+              <span class="tile-record">
+                <span class="rr-win">${recFull.wins}W</span>
+                <span class="rr-sep">–</span>
+                <span class="rr-loss">${recFull.losses}L</span>
+              </span>
+            </div>
+          </div>
+          <div class="tile-cta">View report<span class="tile-cta-arrow">→</span></div>
+        </a>`;
+    }
+
+    let activeHero = 'all', activeTier = 'all', activeFormat = 'all';
+    function getTierForReport(r) {
+      if (r.tier != null) return r.tier;
+      return (TIER_INFO[r.eventType] || { tier: 1 }).tier;
+    }
+
+    function applyFilters() {
+      const tiles = document.querySelectorAll('.report-tile');
+      let visible = 0;
+      tiles.forEach(tile => {
+        const tileHeroes  = tile.dataset.heroes  ? tile.dataset.heroes.split(' ')  : [];
+        const tileFormats = tile.dataset.formats ? tile.dataset.formats.split(' ') : [];
+        const heroMatch   = activeHero   === 'all' || tileHeroes.includes(activeHero);
+        const tierMatch   = activeTier   === 'all' || tile.dataset.tier === activeTier;
+        const formatMatch = activeFormat === 'all' || tileFormats.includes(activeFormat);
+        const show = heroMatch && tierMatch && formatMatch;
+        tile.style.display = show ? '' : 'none';
+        if (show) {
+          visible++;
+          const recEl = tile.querySelector('.tile-record');
+          if (recEl) {
+            let recStr = tile.dataset.recFull;
+            if (activeHero !== 'all' && tileHeroes.length > 1) {
+              const heroKey = 'rec' + activeHero.charAt(0).toUpperCase() + activeHero.slice(1);
+              recStr = tile.dataset[heroKey] || tile.dataset.recFull;
+            }
+            if (recStr) {
+              const [w, l] = recStr.split('-');
+              recEl.innerHTML = `<span class="rr-win">${w}W</span><span class="rr-sep">–</span><span class="rr-loss">${l}L</span>`;
+            }
+          }
+        }
+      });
+      document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+      updateFilterUI();
+      const filteredReports = REPORTS.filter(r => {
+        const heroes  = getHeroes(r);
+        const formats = getFormats(r);
+        const heroMatch   = activeHero   === 'all' || heroes.includes(activeHero);
+        const tierMatch   = activeTier   === 'all' || getTierForReport(r) == activeTier;
+        const formatMatch = activeFormat === 'all' || formats.includes(activeFormat);
+        return heroMatch && tierMatch && formatMatch;
+      });
+      buildStats(filteredReports);
+    }
+
+    const tierLabels   = { 1: 'RTN / PQ', 2: 'BG / Show', 3: 'Calling', 4: 'Worlds / PT' };
+    const heroLabelMap = {};
+    const formatLabelMap = {};
+
+    function updateFilterUI() {
+      const activeCount = (activeHero !== 'all' ? 1 : 0) + (activeTier !== 'all' ? 1 : 0) + (activeFormat !== 'all' ? 1 : 0);
+      const badge = document.getElementById('filter-badge');
+      const btn   = document.getElementById('filter-toggle-btn');
+      const tags  = document.getElementById('filter-active-tags');
+      badge.style.display = activeCount > 0 ? '' : 'none';
+      badge.textContent = activeCount;
+      btn.classList.toggle('has-filters', activeCount > 0);
+      const parts = [];
+      if (activeHero   !== 'all') parts.push({ label: heroLabelMap[activeHero]    || activeHero,   type: 'hero' });
+      if (activeTier   !== 'all') parts.push({ label: tierLabels[activeTier]       || 'Tier ' + activeTier, type: 'tier' });
+      if (activeFormat !== 'all') parts.push({ label: formatLabelMap[activeFormat] || activeFormat, type: 'format' });
+      tags.innerHTML = parts.map(p =>
+        `<span class="filter-active-tag" data-clear="${p.type}">${esc(p.label)}<span class="remove">×</span></span>`
+      ).join('');
+      tags.querySelectorAll('.filter-active-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+          if (tag.dataset.clear === 'hero')   setFilter('hero',   'all');
+          if (tag.dataset.clear === 'tier')   setFilter('tier',   'all');
+          if (tag.dataset.clear === 'format') setFilter('format', 'all');
+        });
+      });
+    }
+
+    function setFilter(ftype, fval) {
+      if (ftype === 'hero')   activeHero   = fval;
+      if (ftype === 'tier')   activeTier   = fval;
+      if (ftype === 'format') activeFormat = fval;
+      document.querySelectorAll(`[data-ftype="${ftype}"]`)
+        .forEach(b => b.classList.toggle('active', b.dataset.fval === fval));
+      applyFilters();
+    }
+
+    function buildFilters() {
+      const heroSet = new Set();
+      REPORTS.forEach(r => getHeroes(r).forEach(h => heroSet.add(h)));
+      const heroes = [...heroSet].sort();
+      const tiers = [...new Set(REPORTS.map(r => getTierForReport(r)))].sort();
+      const formatSet = new Set();
+      REPORTS.forEach(r => getFormats(r).forEach(f => formatSet.add(f)));
+      const formats = [...formatSet].sort();
+
+      const heroEl = document.getElementById('hero-filter');
+      heroEl.innerHTML = `<button class="filter-pill active" data-ftype="hero" data-fval="all">All</button>` +
+        heroes.map(h => {
+          const displayH = REPORTS.flatMap(r => r.hero.split(' / ').map(s => s.trim())).find(s => s.toLowerCase() === h) || h;
+          heroLabelMap[h] = displayH;
+          return `<button class="filter-pill" data-ftype="hero" data-fval="${esc(h)}">${esc(displayH)}</button>`;
+        }).join('');
+
+      const tierEl = document.getElementById('tier-filter');
+      tierEl.innerHTML = `<button class="filter-pill active" data-ftype="tier" data-fval="all">All</button>` +
+        tiers.map(t => `<button class="filter-pill t${t}" data-ftype="tier" data-fval="${t}">${esc(tierLabels[t] || 'Tier ' + t)}</button>`).join('');
+
+      const formatEl = document.getElementById('format-filter');
+      formatEl.innerHTML = `<button class="filter-pill active" data-ftype="format" data-fval="all">All</button>` +
+        formats.map(f => {
+          const displayF = REPORTS.flatMap(r => (r.format || '').split(' / ').map(s => s.trim())).find(s => s.toLowerCase() === f) || f;
+          formatLabelMap[f] = displayF;
+          return `<button class="filter-pill" data-ftype="format" data-fval="${esc(f)}">${esc(displayF)}</button>`;
+        }).join('');
+
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.addEventListener('click', () => setFilter(btn.dataset.ftype, btn.dataset.fval));
+      });
+      const toggleBtn   = document.getElementById('filter-toggle-btn');
+      const filterPanel = document.getElementById('filter-panel');
+      toggleBtn.addEventListener('click', () => { filterPanel.classList.toggle('open'); });
+    }
+
+    function buildStats(reports) {
+      reports = reports || REPORTS;
+      let wins = 0, losses = 0;
+      reports.forEach(r => {
+        const heroes = getHeroes(r);
+        let fmtTag = null;
+        if (activeHero !== 'all' && heroes.length > 1) fmtTag = getHeroFormatTag(r, activeHero);
+        const rec = computeRecord(r.rounds, fmtTag);
+        wins   += rec.wins;
+        losses += rec.losses;
+      });
+      const total = wins + losses;
+      const wr = total > 0 ? Math.round(wins / total * 100) : 0;
+      document.getElementById('hero-stats').innerHTML = `
+        <span class="stat-pill">${reports.length} report${reports.length !== 1 ? 's' : ''}</span>
+        <span class="stat-pill win">${wins}W</span>
+        <span class="stat-pill loss">${losses}L</span>
+        <span class="stat-pill wr">${wr}% WR</span>`;
+    }
+
+    function init() {
+      document.getElementById('reports-container').innerHTML = REPORTS.map(renderTile).join('');
+      buildStats();
+      buildFilters();
+    }
+    init();
+  })();
+  </script>
+
+</body>
+</html>
