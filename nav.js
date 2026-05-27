@@ -39,6 +39,8 @@
     '.sidebar-link.active{color:var(--nav-accent);background:rgba(196,134,74,0.08);border-left-color:var(--nav-accent)}' +
     '.sidebar-link svg{flex-shrink:0;opacity:0.45;transition:opacity 0.18s}' +
     '.sidebar-link:hover svg,.sidebar-link.active svg{opacity:1}' +
+    '.sidebar-link.external::after{content:"↗";font-size:0.6rem;margin-left:auto;opacity:0.4;flex-shrink:0;transition:opacity 0.18s}' +
+    '.sidebar-link.external:hover::after{opacity:0.8}' +
     '@media(max-width:1024px){.sidebar{display:none}}' +
     '.mobile-header{display:none;align-items:center;gap:0.75rem;padding:0 1rem;height:52px;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);flex-shrink:0;position:sticky;top:0;z-index:50}' +
     '@media(max-width:1024px){.mobile-header{display:flex}}' +
@@ -100,6 +102,13 @@
         { key: 'deck-viewer', href: '../fab-deck-viewer/',        text: 'Deck Builder',
           icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>' }
       ]
+    },
+    {
+      label: 'Other Sites',
+      links: [
+        { key: 'ai-web-pages', href: 'https://xssxghjk.github.io/AI-Web-Pages/', text: 'AI Web Pages', external: true,
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4" cy="4" r="0.8" fill="currentColor"/><circle cx="6.5" cy="4" r="0.8" fill="currentColor"/></svg>' }
+      ]
     }
   ];
 
@@ -116,8 +125,9 @@
     SECTIONS.forEach(function (section, i) {
       html += '<div class="sidebar-section"' + (i > 0 ? ' style="margin-top:0.25rem"' : '') + '>' + section.label + '</div>';
       section.links.forEach(function (link) {
-        var cls = 'sidebar-link' + (link.key === activePage ? ' active' : '');
-        html += '<a class="' + cls + '" href="' + link.href + '">' + link.icon + link.text + '</a>';
+        var cls = 'sidebar-link' + (link.key === activePage ? ' active' : '') + (link.external ? ' external' : '');
+        var attrs = link.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+        html += '<a class="' + cls + '" href="' + link.href + '"' + attrs + '>' + link.icon + link.text + '</a>';
       });
     });
     return html;
