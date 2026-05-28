@@ -643,6 +643,44 @@
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       gap: 0.75rem;
     }
+    .card-grid.compact-grid {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      max-width: 900px;
+      gap: 0.5rem;
+    }
+    .card-grid.compact-grid .card-frame {
+      padding-top: 52.63%; /* 10/19 aspect ratio */
+    }
+    .card-grid.compact-grid .card-entry .card-name {
+      display: none;
+    }
+
+    /* ── Compact view toggle button ── */
+    .btn-compact-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      padding: 0.35rem 0.75rem;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border-2);
+      background: none;
+      color: var(--muted);
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif;
+      font-style: italic;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .btn-compact-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .btn-compact-toggle.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
 
     .card-entry {
       position: relative;
@@ -725,6 +763,7 @@
     @media (max-width: 600px) {
       .page { padding: 1.25rem 1rem 3rem; }
       .card-grid { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 0.5rem; }
+      .card-grid.compact-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
       .loading-card { padding: 2rem 2rem; min-width: 220px; }
     }
 
@@ -2272,7 +2311,11 @@ Header lines, section labels, and footers are ignored automatically."></textarea
 
     <div id="tab-decklist" class="tab-panel">
       <div id="decklist-filter-bar"></div>
-      <div style="margin-bottom:1rem;display:flex;justify-content:flex-end;">
+      <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn-compact-toggle" id="btn-compact-view" title="Toggle compact view">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="11" height="5" rx="1"/><rect x="1" y="7" width="11" height="5" rx="1"/></svg>
+          Compact
+        </button>
         <button class="btn-secondary" id="btn-add-card" style="font-size:0.8rem;padding:0.45rem 1rem;letter-spacing:0.04em;">+ Add Card</button>
       </div>
       <div id="card-groups"></div>
@@ -2604,6 +2647,12 @@ Header lines, section labels, and footers are ignored automatically."></textarea
   let simHandSize = 4;
   let currentDeckReadOnly = false;
   let simDrDetails = false;
+  let compactDecklistView = localStorage.getItem('fab_compact_decklist') === '1';
+
+  function syncCompactToggle() {
+    const btn = document.getElementById('btn-compact-view');
+    if (btn) btn.classList.toggle('active', compactDecklistView);
+  }
 
   function _comb(n, k) {
     if (k < 0 || k > n) return 0;
@@ -2678,6 +2727,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     document.getElementById('sideboard-content').style.display = '';
     document.getElementById('sideboard-heatmap').style.display = 'none';
 
+    syncCompactToggle();
     renderCardGroups(pairs);
 
     // Warnings: missing db entries + format/deck-count validation
@@ -2726,7 +2776,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       head.innerHTML = `<span style="color:${g.color}">${g.label}</span><span class="group-head-count">${grpCount}</span>`;
       section.appendChild(head);
       const grid = document.createElement('div');
-      grid.className = 'card-grid';
+      grid.className = compactDecklistView ? 'card-grid compact-grid' : 'card-grid';
       buckets[g.key].forEach(p => grid.appendChild(makeCard(p.entry, p.card)));
       section.appendChild(grid);
       groupsEl.appendChild(section);
@@ -4941,6 +4991,13 @@ Header lines, section labels, and footers are ignored automatically."></textarea
 
     input.addEventListener('blur', () => setTimeout(closeAc, 120));
   })();
+
+  document.getElementById('btn-compact-view').addEventListener('click', () => {
+    compactDecklistView = !compactDecklistView;
+    localStorage.setItem('fab_compact_decklist', compactDecklistView ? '1' : '0');
+    syncCompactToggle();
+    renderCardGroups(currentAnalysisPairs.length ? currentAnalysisPairs : currentDeckPairs);
+  });
 
   document.getElementById('btn-add-card').addEventListener('click', openAddCardModal);
   document.getElementById('add-card-cancel').addEventListener('click', closeAddCardModal);
