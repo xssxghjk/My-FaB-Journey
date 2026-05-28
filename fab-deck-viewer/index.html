@@ -684,6 +684,64 @@
       box-sizing: border-box;
       flex-shrink: 0;
       align-items: flex-start;
+      position: relative;
+    }
+    .btn-board-fs {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      background: rgba(28,24,20,0.7);
+      border: 1px solid var(--border-2);
+      border-radius: 2px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    }
+    .btn-board-fs:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    /* ── Board fullscreen overlay ── */
+    .board-fs-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .board-fs-close {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 10000;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background: rgba(28,24,20,0.85);
+      border: 1px solid var(--border-2);
+      border-radius: 2px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .board-fs-close:hover {
+      color: var(--accent);
+      border-color: var(--accent);
     }
     .board-section {
       display: flex;
@@ -3029,9 +3087,186 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       canvas.appendChild(secEl);
     });
 
+    // Fullscreen button
+    const fsBtn = document.createElement('button');
+    fsBtn.className = 'btn-board-fs';
+    fsBtn.title = 'Fullscreen';
+    fsBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4V1h3M7 1h3v3M10 7v3H7M4 10H1V7"/></svg>`;
+    fsBtn.addEventListener('click', () => openBoardFullscreen(deck, pairs));
+    canvas.appendChild(fsBtn);
+
     requestAnimationFrame(() => updateBoardLayout(canvas));
     boardResizeObserver = new ResizeObserver(() => updateBoardLayout(canvas));
     boardResizeObserver.observe(canvas);
+  }
+
+  function openBoardFullscreen(deck, pairs) {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const isPortrait = H > W;
+
+    // Landscape available space
+    const lsW = isPortrait ? H : W;
+    const lsH = isPortrait ? W : H;
+
+    // Fit 19:10 board into landscape space
+    const boardRatio = 19 / 10;
+    let bW, bH;
+    if (lsW / lsH >= boardRatio) {
+      bH = lsH;
+      bW = bH * boardRatio;
+    } else {
+      bW = lsW;
+      bH = bW / boardRatio;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'board-fs-overlay';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'board-fs-close';
+    closeBtn.title = 'Close (Esc)';
+    closeBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>`;
+
+    const fsCanvas = document.createElement('div');
+    fsCanvas.className = 'board-canvas';
+    fsCanvas.style.aspectRatio = 'unset';
+    fsCanvas.style.border = 'none';
+
+    if (isPortrait) {
+      // Before rotate(90deg): set width=bH, height=bW so after rotation visual = bW×bH
+      fsCanvas.style.width = bH + 'px';
+      fsCanvas.style.height = bW + 'px';
+      fsCanvas.style.position = 'absolute';
+      fsCanvas.style.left = ((W - bH) / 2) + 'px';
+      fsCanvas.style.top = ((H - bW) / 2) + 'px';
+      fsCanvas.style.transform = 'rotate(90deg)';
+      fsCanvas.style.transformOrigin = 'center center';
+    } else {
+      fsCanvas.style.width = bW + 'px';
+      fsCanvas.style.height = bH + 'px';
+    }
+
+    overlay.appendChild(fsCanvas);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+
+    // Render board content into fullscreen canvas
+    renderBoardViewInto(fsCanvas, deck, pairs);
+
+    const close = () => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', onKey);
+  }
+
+  function renderBoardViewInto(canvas, deck, pairs) {
+    const heroName = parseHeroName(deck.decklist);
+    const heroCard = heroName ? lookup(heroName, null) : null;
+
+    const sectionDefs = [
+      { key: 'hero',   label: 'Hero',       colorVar: 'var(--accent)',       labelCls: 'board-hero-label', items: [] },
+      { key: 'other',  label: 'Arena',       colorVar: '#8a7e70',             labelCls: '',                  items: [] },
+      { key: 'red',    label: 'Red · 1',     colorVar: 'var(--red-c)',        labelCls: '',                  items: [] },
+      { key: 'yellow', label: 'Yellow · 2',  colorVar: 'var(--yellow-c)',     labelCls: '',                  items: [] },
+      { key: 'blue',   label: 'Blue · 3',    colorVar: 'var(--blue-c)',       labelCls: '',                  items: [] },
+    ];
+
+    if (heroName) {
+      sectionDefs[0].items.push({ entry: { qty: 1, name: heroName, hint: null }, card: heroCard });
+    }
+    for (const p of pairs) {
+      const col = p.card ? (p.card.color || 'other') : 'other';
+      const sec = sectionDefs.find(s => s.key === col);
+      (sec || sectionDefs[1]).items.push(p);
+    }
+
+    const activeSections = sectionDefs.filter(s => s.items.length > 0);
+
+    const CARD_AR = 5 / 7;
+    const TARGET_AR = 1.9;
+    let bestRows = 4, bestDiff = Infinity;
+    for (let rows = 2; rows <= 8; rows++) {
+      const cols = activeSections.reduce((s, sec) => s + Math.ceil(sec.items.length / rows), 0);
+      const ar = (cols * CARD_AR) / rows;
+      const diff = Math.abs(ar - TARGET_AR);
+      if (diff < bestDiff) { bestDiff = diff; bestRows = rows; }
+    }
+
+    activeSections.forEach(sec => {
+      sec.cols = Math.max(1, Math.ceil(sec.items.length / bestRows));
+    });
+    canvas.dataset.bestRows = bestRows;
+    canvas.dataset.numSections = activeSections.length;
+
+    activeSections.forEach((sec, secIdx) => {
+      if (secIdx > 0) {
+        const sep = document.createElement('div');
+        sep.className = 'board-sep';
+        canvas.appendChild(sep);
+      }
+
+      const secEl = document.createElement('div');
+      secEl.className = 'board-section';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'board-section-label' + (sec.labelCls ? ' ' + sec.labelCls : '');
+      labelEl.textContent = sec.label;
+      labelEl.style.color = sec.colorVar;
+      secEl.appendChild(labelEl);
+
+      const gridEl = document.createElement('div');
+      gridEl.className = 'board-section-grid';
+      gridEl.dataset.cols = sec.cols;
+
+      sec.items.forEach(p => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'board-card';
+        cardEl.title = p.entry.name + (p.entry.qty > 1 ? ` ×${p.entry.qty}` : '');
+
+        const inner = document.createElement('div');
+        inner.className = 'board-card-inner';
+
+        if (p.card && p.card.imgUrl) {
+          const img = document.createElement('img');
+          img.src = p.card.imgUrl;
+          img.alt = p.entry.name;
+          img.loading = 'lazy';
+          inner.appendChild(img);
+        } else {
+          const ph = document.createElement('div');
+          ph.className = 'board-card-placeholder';
+          ph.textContent = p.entry.name;
+          inner.appendChild(ph);
+        }
+        cardEl.appendChild(inner);
+
+        if (p.entry.qty > 1) {
+          const badge = document.createElement('div');
+          badge.className = 'board-qty-badge';
+          badge.textContent = `×${p.entry.qty}`;
+          cardEl.appendChild(badge);
+        }
+
+        if (p.card && p.card.pitch) {
+          const dot = document.createElement('div');
+          dot.className = `board-pitch-dot ${p.card.color || ''}`;
+          dot.textContent = p.card.pitch;
+          cardEl.appendChild(dot);
+        }
+
+        gridEl.appendChild(cardEl);
+      });
+
+      secEl.appendChild(gridEl);
+      canvas.appendChild(secEl);
+    });
+
+    requestAnimationFrame(() => updateBoardLayout(canvas));
   }
 
   function updateBoardLayout(canvas) {
