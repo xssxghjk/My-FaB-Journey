@@ -100,7 +100,9 @@
         { key: 'prep',        href: '../tcg-tournament-prep/',    text: 'Tournament Prep',
           icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5l1.5 3 3.5.5-2.5 2.5.5 3.5L7 9.5 4 11l.5-3.5L2 5l3.5-.5L7 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>' },
         { key: 'deck-viewer', href: '../fab-deck-viewer/',        text: 'Deck Builder',
-          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>' }
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>' },
+        { key: 'tournament',  href: '../fab-tournament/',         text: 'Tournament Bracket',
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h3v2.5H2zM9 2h3v2.5H9zM5.5 5v2h3V5M5.5 9.5h3M7 7v2.5M5 9.5H2v2.5h3zM9 9.5h3v2.5H9z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>' }
       ]
     },
     {
@@ -117,6 +119,7 @@
     if (/\/tcg-tournament-reports(\/|$)/.test(p)) return 'reports';
     if (/\/tcg-tournament-prep(\/|$)/.test(p))    return 'prep';
     if (/\/fab-deck-viewer(\/|$)/.test(p))         return 'deck-viewer';
+    if (/\/fab-tournament(\/|$)/.test(p))          return 'tournament';
     return null;
   }
 
