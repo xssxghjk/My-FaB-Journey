@@ -916,9 +916,8 @@
 
     var statsMap = computeStats(t);
 
-    // Can edit pairings in round 1 before any non-bye result is entered
-    var canEditPairings = t.currentRound === 1 &&
-      !round.some(function (m) { return m.result && m.result !== 'bye'; });
+    // Can edit pairings before any non-bye result is entered in the current round
+    var canEditPairings = !round.some(function (m) { return m.result && m.result !== 'bye'; });
 
     var tabContent = '';
     if (state.editingPairings && canEditPairings) {
@@ -1265,9 +1264,9 @@
 
   window.enterPairingEdit = function () {
     var t = state.tournament;
-    var round0 = t.pairings[0];
+    var currentRound = t.pairings[t.currentRound - 1];
     var order = [];
-    round0.forEach(function (m) {
+    currentRound.forEach(function (m) {
       var p1 = t.players.find(function (p) { return p.id === m.p1; });
       if (p1) order.push(p1);
       if (m.p2 !== null && m.p2 !== undefined) {
@@ -1300,7 +1299,7 @@
     if (order.length % 2 === 1) {
       newPairs.push({ p1: order[order.length - 1].id, p2: null, result: 'bye' });
     }
-    t.pairings[0] = newPairs;
+    t.pairings[t.currentRound - 1] = newPairs;
     saveTournament(t);
     state.editingPairings = false;
     state.editingOrder = [];
