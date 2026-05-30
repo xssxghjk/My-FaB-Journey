@@ -736,6 +736,7 @@
     nextId: 1,
     dragSrc: null
   };
+  window.setupState = setupState;
 
   function initSetup(fromTournament) {
     if (fromTournament) {
@@ -905,6 +906,7 @@
     btn.style.opacity = canStart ? '' : '0.45';
     btn.style.cursor = canStart ? '' : 'not-allowed';
   }
+  window.refreshStartBtn = refreshStartBtn;
 
   /* ── Round ── */
   function renderRound() {
