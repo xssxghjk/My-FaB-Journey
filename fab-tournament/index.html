@@ -788,6 +788,7 @@
           '</div>' +
           '<div class="btn-group">' +
             '<button class="btn btn-primary" onclick="resumeTournament()">Continue</button>' +
+            '<button class="btn btn-sm" onclick="renameTournament()">&#9998; Rename</button>' +
             '<button class="btn btn-sm btn-danger" onclick="abandonTournament()">Abandon</button>' +
           '</div>' +
         '</div>';
@@ -800,6 +801,7 @@
           '<div class="history-tile-name">' + escHtml(h.name) + '</div>' +
           '<div class="history-tile-meta">' + formatDate(h.date) + ' &mdash; ' + h.playerCount + ' players, ' + h.rounds + ' rounds</div>' +
           (h.winner ? '<div class="history-tile-winner">Winner: ' + escHtml(h.winner) + '</div>' : '') +
+          '<button class="btn btn-sm" style="margin-top:0.6rem;font-size:0.68rem" onclick="event.stopPropagation();renameHistoric(\'' + h.id + '\')">&#9998; Rename</button>' +
         '</div>';
       }).join('');
       histHtml =
@@ -965,6 +967,7 @@
       '<header class="page-header">' +
         '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">' +
           '<button class="btn btn-sm" onclick="goHome()">&#8592; Home</button>' +
+          '<button class="btn btn-sm" onclick="renameTournament()">&#9998; Rename</button>' +
         '</div>' +
         '<div class="round-header">' +
           '<div class="round-title">' + escHtml(t.name) + '</div>' +
@@ -1165,6 +1168,38 @@
     clearActiveTournament();
     state.tournament = null;
     state.view = 'home';
+    render();
+  };
+
+  window.renameTournament = function () {
+    var t = state.tournament;
+    if (!t) return;
+    var newName = prompt('Rename tournament:', t.name);
+    if (newName === null) return;
+    newName = newName.trim();
+    if (!newName) { toast('Name cannot be empty.'); return; }
+    t.name = newName;
+    saveTournament(t);
+    toast('Tournament renamed.');
+    render();
+  };
+
+  window.renameHistoric = function (id) {
+    var hist = getHistory();
+    var entry = hist.find(function (h) { return h.id === id; });
+    if (!entry) return;
+    var newName = prompt('Rename tournament:', entry.name);
+    if (newName === null) return;
+    newName = newName.trim();
+    if (!newName) { toast('Name cannot be empty.'); return; }
+    entry.name = newName;
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch (e) {}
+    var full = loadHistoricTournament(id);
+    if (full) {
+      full.name = newName;
+      try { localStorage.setItem('fab_tournament_' + id, JSON.stringify(full)); } catch (e) {}
+    }
+    toast('Tournament renamed.');
     render();
   };
 
