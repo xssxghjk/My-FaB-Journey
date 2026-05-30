@@ -486,7 +486,9 @@
     view: 'home',          // 'home' | 'setup' | 'round' | 'results'
     tournament: null,
     roundTab: 'pairings',  // 'pairings' | 'standings'
-    showHistory: false
+    showHistory: false,
+    editingPairings: false,
+    editingOrder: []
   };
 
   /* ─── Persistence ─── */
@@ -914,14 +916,49 @@
 
     var statsMap = computeStats(t);
 
+    // Can edit pairings in round 1 before any non-bye result is entered
+    var canEditPairings = t.currentRound === 1 &&
+      !round.some(function (m) { return m.result && m.result !== 'bye'; });
+
     var tabContent = '';
-    if (state.roundTab === 'pairings') {
+    if (state.editingPairings && canEditPairings) {
+      tabContent = renderPairingEditor(t);
+    } else if (state.roundTab === 'pairings') {
       tabContent = renderPairings(t, round, statsMap);
     } else {
       tabContent = renderStandings(t, false);
     }
 
     var progress = Math.round((t.currentRound - 1) / t.rounds * 100);
+
+    var tabBar = state.editingPairings && canEditPairings ? '' :
+      '<div class="tab-bar">' +
+        '<button class="tab-btn' + (state.roundTab === 'pairings' ? ' active' : '') + '" onclick="setRoundTab(\'pairings\')">Pairings</button>' +
+        '<button class="tab-btn' + (state.roundTab === 'standings' ? ' active' : '') + '" onclick="setRoundTab(\'standings\')">Standings</button>' +
+      '</div>';
+
+    var btnGroup = '';
+    if (state.editingPairings && canEditPairings) {
+      btnGroup =
+        '<div class="btn-group">' +
+          '<button class="btn btn-primary" onclick="confirmPairingEdit()">Confirm Pairings</button>' +
+          '<button class="btn" onclick="cancelPairingEdit()">Cancel</button>' +
+        '</div>';
+    } else if (state.roundTab === 'pairings') {
+      var editBtn = (canEditPairings && !state.editingPairings)
+        ? '<button class="btn btn-sm" onclick="enterPairingEdit()" style="margin-left:auto">&#9998; Edit Pairings</button>'
+        : '';
+      btnGroup =
+        '<div class="btn-group">' +
+          (allDone
+            ? (isLastRound
+                ? '<button class="btn btn-primary" onclick="finishTournament()">Finish Tournament</button>'
+                : '<button class="btn btn-primary" onclick="nextRound()">Next Round &rarr;</button>')
+            : '<button class="btn btn-primary" disabled style="opacity:0.45;cursor:not-allowed">Next Round &rarr;</button>') +
+          editBtn +
+          '<button class="btn btn-sm btn-danger" onclick="abandonTournament()">Abandon</button>' +
+        '</div>';
+    }
 
     app.innerHTML =
       '<header class="page-header">' +
@@ -936,23 +973,9 @@
         '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:' + progress + '%"></div></div>' +
       '</header>' +
 
-      '<div class="tab-bar">' +
-        '<button class="tab-btn' + (state.roundTab === 'pairings' ? ' active' : '') + '" onclick="setRoundTab(\'pairings\')">Pairings</button>' +
-        '<button class="tab-btn' + (state.roundTab === 'standings' ? ' active' : '') + '" onclick="setRoundTab(\'standings\')">Standings</button>' +
-      '</div>' +
-
+      tabBar +
       tabContent +
-
-      (state.roundTab === 'pairings' ?
-        '<div class="btn-group">' +
-          (allDone
-            ? (isLastRound
-                ? '<button class="btn btn-primary" onclick="finishTournament()">Finish Tournament</button>'
-                : '<button class="btn btn-primary" onclick="nextRound()">Next Round &rarr;</button>')
-            : '<button class="btn btn-primary" disabled style="opacity:0.45;cursor:not-allowed">Next Round &rarr;</button>') +
-          '<button class="btn btn-sm btn-danger" onclick="abandonTournament()">Abandon</button>' +
-        '</div>'
-        : '');
+      btnGroup;
   }
 
   function renderPairings(t, round, statsMap) {
@@ -1005,6 +1028,28 @@
     }).join('');
 
     return '<div class="pairing-list">' + rows + '</div>';
+  }
+
+  function renderPairingEditor(t) {
+    var order = state.editingOrder;
+    var items = order.map(function (p, i) {
+      var matchNum = Math.floor(i / 2) + 1;
+      var isFirst = i % 2 === 0;
+      var isBye = order.length % 2 === 1 && i === order.length - 1;
+      var vsLabel = isBye ? 'BYE' : (isFirst ? 'Match ' + matchNum : 'vs');
+      var borderTop = isFirst && i > 0 ? 'margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.75rem;' : '';
+      return '<div style="display:flex;align-items:center;gap:0.6rem;' + borderTop + '">' +
+        '<span style="font-size:0.7rem;color:var(--muted);min-width:3.5rem;text-align:right">' + escHtml(vsLabel) + '</span>' +
+        '<span style="flex:1;font-size:0.95rem">' + escHtml(p.name) + '</span>' +
+        '<button class="btn btn-sm" onclick="movePairingPlayer(' + i + ',-1)"' + (i === 0 ? ' disabled style="opacity:0.3"' : '') + '>&#8593;</button>' +
+        '<button class="btn btn-sm" onclick="movePairingPlayer(' + i + ',1)"' + (i === order.length - 1 ? ' disabled style="opacity:0.3"' : '') + '>&#8595;</button>' +
+      '</div>';
+    }).join('');
+    return '<div class="card">' +
+      '<div class="card-title">Configure Round 1 Pairings</div>' +
+      '<div class="section-label" style="margin-bottom:0.75rem">Move players up/down — they pair top to bottom (1 vs 2, 3 vs 4&hellip;)</div>' +
+      items +
+    '</div>';
   }
 
   function renderStandings(t, showFull) {
@@ -1185,30 +1230,87 @@
 
   window.startTournament = function () {
     var name = setupState.name.trim();
-    if (!name || setupState.players.length < 2) return;
-    var rounds = parseInt(document.getElementById('t-rounds').value) || setupState.rounds;
-    rounds = Math.max(1, Math.min(15, rounds));
+    if (!name) { toast('Please enter a tournament name.'); return; }
+    if (setupState.players.length < 2) { toast('Add at least 2 players to start.'); return; }
+
+    var roundsInput = document.getElementById('t-rounds');
+    var rounds = Math.max(1, Math.min(15, parseInt((roundsInput && roundsInput.value) || setupState.rounds) || setupState.rounds));
 
     var t = {
       id: uid(),
       name: name,
       date: new Date().toISOString(),
       rounds: rounds,
-      currentRound: 0,
+      currentRound: 1,
       status: 'active',
       players: setupState.players.map(function (p) { return { id: p.id, name: p.name, seed: p.seed }; }),
       pairings: []
     };
 
-    // Generate first round pairings
-    t.currentRound = 1;
-    t.pairings.push(generatePairings(t));
+    try {
+      t.pairings.push(generatePairings(t));
+    } catch (e) {
+      toast('Failed to generate pairings. Please try again.');
+      return;
+    }
 
     saveTournament(t);
     state.tournament = t;
     state.view = 'round';
     state.roundTab = 'pairings';
+    state.editingPairings = false;
+    state.editingOrder = [];
     render();
+  };
+
+  window.enterPairingEdit = function () {
+    var t = state.tournament;
+    var round0 = t.pairings[0];
+    var order = [];
+    round0.forEach(function (m) {
+      var p1 = t.players.find(function (p) { return p.id === m.p1; });
+      if (p1) order.push(p1);
+      if (m.p2 !== null && m.p2 !== undefined) {
+        var p2 = t.players.find(function (p) { return p.id === m.p2; });
+        if (p2) order.push(p2);
+      }
+    });
+    state.editingOrder = order;
+    state.editingPairings = true;
+    renderRound();
+  };
+
+  window.movePairingPlayer = function (idx, dir) {
+    var order = state.editingOrder;
+    var target = idx + dir;
+    if (target < 0 || target >= order.length) return;
+    var tmp = order[idx];
+    order[idx] = order[target];
+    order[target] = tmp;
+    renderRound();
+  };
+
+  window.confirmPairingEdit = function () {
+    var t = state.tournament;
+    var order = state.editingOrder;
+    var newPairs = [];
+    for (var i = 0; i + 1 < order.length; i += 2) {
+      newPairs.push({ p1: order[i].id, p2: order[i + 1].id, result: null });
+    }
+    if (order.length % 2 === 1) {
+      newPairs.push({ p1: order[order.length - 1].id, p2: null, result: 'bye' });
+    }
+    t.pairings[0] = newPairs;
+    saveTournament(t);
+    state.editingPairings = false;
+    state.editingOrder = [];
+    renderRound();
+  };
+
+  window.cancelPairingEdit = function () {
+    state.editingPairings = false;
+    state.editingOrder = [];
+    renderRound();
   };
 
   window.setResult = function (matchIdx, result) {
