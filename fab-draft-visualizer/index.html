@@ -937,7 +937,7 @@
 
   /* ── Render: pod stats tab ───────────────────────────────────────────── */
   function renderPodStats() {
-    const pool  = getFullPool(selPlayer);
+    const pool = players.flatMap((_, idx) => getFullPool(idx));
     const total = pool.length;
 
     const colors = { red: 0, yellow: 0, blue: 0, none: 0 };
@@ -977,7 +977,7 @@
         </div>`;
     }
 
-    document.getElementById('stats-title').textContent = players[selPlayer].userName + "'s Pod";
+    document.getElementById('stats-title').textContent = 'Entire Pod';
     document.getElementById('stats-count').textContent = total + ' cards';
     document.getElementById('pod-stats-content').innerHTML = `
       <div class="stat-section">
