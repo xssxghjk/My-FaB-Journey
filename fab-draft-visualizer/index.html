@@ -153,6 +153,68 @@
       border-color: rgba(196,134,74,0.4);
     }
 
+    /* ── Main tab bar ───────────────────────────────────────────────────── */
+    .main-tab-bar {
+      display: flex; gap: 2px; margin-bottom: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .main-tab {
+      padding: 0.45rem 1.2rem;
+      background: none; border: 1px solid transparent; border-bottom: none;
+      border-radius: 2px 2px 0 0;
+      color: var(--muted-2); font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.8rem; cursor: pointer; letter-spacing: 0.02em;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+      position: relative; bottom: -1px;
+    }
+    .main-tab:hover { color: var(--text); }
+    .main-tab.active {
+      color: var(--accent); background: var(--bg);
+      border-color: var(--border); border-bottom-color: var(--bg);
+    }
+
+    .tab-panel { padding-top: 1.25rem; }
+
+    /* ── Deck grid (full-pool tab) ──────────────────────────────────────── */
+    .deck-header {
+      display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
+      margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+    }
+
+    .deck-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.45rem; font-weight: 700; font-style: italic; color: var(--text);
+    }
+
+    .deck-count-badge {
+      font-size: 0.68rem; padding: 2px 7px; border-radius: 2px; border: 1px solid;
+      color: var(--muted); border-color: var(--border);
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.55rem;
+    }
+
+    .deck-card {
+      border-radius: 3px; overflow: hidden;
+      border: 1px solid var(--border); background: var(--surface);
+      transition: transform 0.15s;
+    }
+    .deck-card:hover { transform: translateY(-2px); }
+    .deck-card.color-red    { border-color: rgba(224,80,64,0.35); }
+    .deck-card.color-yellow { border-color: rgba(212,146,74,0.35); }
+    .deck-card.color-blue   { border-color: rgba(90,180,204,0.35); }
+
+    .deck-img-wrap { aspect-ratio: 5/7; background: var(--surface-2); overflow: hidden; position: relative; }
+    .deck-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .deck-fallback {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 0.25rem; font-size: 0.52rem; text-align: center; color: var(--muted); line-height: 1.3;
+    }
+
     .pick-controls {
       display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
     }
@@ -401,18 +463,32 @@
 
     <!-- Main content -->
     <div class="draft-main">
-      <div class="booster-header" id="booster-header"></div>
-      <div class="booster-grid" id="booster-grid"></div>
+      <div class="main-tab-bar" id="main-tabs"></div>
 
-      <div class="pool-section">
-        <div class="pool-header" id="pool-toggle">
-          <span>Draft Pool</span>
-          <span class="pool-count" id="pool-count"></span>
-          <svg class="pool-chevron" id="pool-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+      <!-- Tab 0: Booster view -->
+      <div id="tab-booster" class="tab-panel">
+        <div class="booster-header" id="booster-header"></div>
+        <div class="booster-grid" id="booster-grid"></div>
+
+        <div class="pool-section">
+          <div class="pool-header" id="pool-toggle">
+            <span>Draft Pool</span>
+            <span class="pool-count" id="pool-count"></span>
+            <svg class="pool-chevron" id="pool-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="pool-grid" id="pool-grid" hidden></div>
         </div>
-        <div class="pool-grid" id="pool-grid" hidden></div>
+      </div>
+
+      <!-- Tab 1: Full deck view -->
+      <div id="tab-deck" class="tab-panel" hidden>
+        <div class="deck-header">
+          <span class="deck-title" id="deck-title">Deck</span>
+          <span class="deck-count-badge" id="deck-count"></span>
+        </div>
+        <div class="deck-grid" id="deck-grid"></div>
       </div>
     </div>
 
@@ -433,6 +509,7 @@
   let players = [];
   let selPlayer = 0, selPack = 0, selPick = 0;
   let poolOpen = false;
+  let selTab = 0;
 
   /* ── Data helpers ────────────────────────────────────────────────────── */
   function parseCardId(id) {
@@ -484,7 +561,7 @@
   }
 
   function packDir(packNum) {
-    return packNum % 2 === 0 ? 'left' : 'right';
+    return packNum % 2 === 0 ? 'right' : 'left';
   }
 
   const RARITY_CODE = { common: 'C', rare: 'R', majestic: 'M', legendary: 'L', fabled: 'F', token: 'T' };
@@ -633,9 +710,12 @@
 
   /* ── State changes ───────────────────────────────────────────────────── */
   function selectPlayer(idx) {
-    selPlayer = idx; selPack = 0; selPick = 0;
+    selPlayer = idx;
+    const picks = getPackPicks(selPlayer, selPack);
+    if (picks.length > 0 && selPick >= picks.length) selPick = picks.length - 1;
     renderPlayers(); renderPackTabs(); renderPickNav();
     renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    if (selTab === 1) renderDeckTab();
   }
 
   function selectPack(pack) {
@@ -662,16 +742,68 @@
     if (selPick < total - 1) selectPick(selPick + 1);
   }
 
+  /* ── Full pool (all picks, all packs) ───────────────────────────────── */
+  function getFullPool(playerIdx) {
+    const pool = [];
+    for (let pn = 0; pn <= 2; pn++) {
+      const picks = getPackPicks(playerIdx, pn);
+      for (let pi = 0; pi < picks.length; pi++) {
+        const pk = picks[pi];
+        if (pk && pk.pick.length > 0) {
+          const id = pk.booster[pk.pick[0]];
+          if (id) pool.push(id);
+        }
+      }
+    }
+    return pool;
+  }
+
+  /* ── Render: main tabs ───────────────────────────────────────────────── */
+  function renderMainTabs() {
+    const labels = ['Booster', 'Deck'];
+    document.getElementById('main-tabs').innerHTML = labels.map((label, i) => `
+      <button class="main-tab ${i === selTab ? 'active' : ''}" onclick="selectMainTab(${i})">${label}</button>
+    `).join('');
+    document.getElementById('tab-booster').hidden = selTab !== 0;
+    document.getElementById('tab-deck').hidden    = selTab !== 1;
+  }
+
+  /* ── Render: deck tab ────────────────────────────────────────────────── */
+  function renderDeckTab() {
+    const pool = getFullPool(selPlayer);
+    document.getElementById('deck-title').textContent = players[selPlayer].userName + "'s Deck";
+    document.getElementById('deck-count').textContent = pool.length + ' cards';
+    document.getElementById('deck-grid').innerHTML = pool.map(cardId => {
+      const card = getCardInfo(cardId);
+      return `
+        <div class="deck-card${card.color ? ' color-' + card.color : ''}"
+             title="${esc(card.name)}${card.color ? ' (' + card.color + ')' : ''}">
+          <div class="deck-img-wrap">
+            <div class="deck-fallback">${esc(card.name)}</div>
+            ${card.imgUrl ? `<img class="deck-img" src="${esc(card.imgUrl)}" alt="${esc(card.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── Select main tab ─────────────────────────────────────────────────── */
+  function selectMainTab(idx) {
+    selTab = idx;
+    renderMainTabs();
+    if (selTab === 1) renderDeckTab();
+  }
+
   /* ── Load draft ──────────────────────────────────────────────────────── */
   function loadDraft(json) {
     draft   = json;
     players = Object.values(json.users || {});
     if (!players.length) { alert('No players found in draft log.'); return; }
-    selPlayer = 0; selPack = 0; selPick = 0;
+    selPlayer = 0; selPack = 0; selPick = 0; selTab = 0;
     document.getElementById('view-upload').hidden = true;
     document.getElementById('view-draft').hidden  = false;
     renderPlayers(); renderPackTabs(); renderPickNav();
-    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    renderMainTabs(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
   }
 
   /* ── File input ──────────────────────────────────────────────────────── */
