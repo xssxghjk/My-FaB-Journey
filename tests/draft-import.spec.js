@@ -101,7 +101,7 @@ test('can switch between Booster, Deck and Pod tabs', async ({ page }) => {
   await page.locator('.main-tab').filter({ hasText: 'Pod' }).click();
   await expect(page.locator('#tab-pod')).toBeVisible();
   await expect(page.locator('#tab-deck')).toBeHidden();
-  await expect(page.locator('#stats-title')).toContainText('BirdOfHermes11');
+  await expect(page.locator('#stats-title')).toContainText('Entire Pod');
 });
 
 test('draft pool toggle shows and hides the pool grid', async ({ page }) => {
