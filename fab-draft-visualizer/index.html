@@ -202,11 +202,22 @@
     }
 
     .seat-num {
-      font-size: 0.6rem; width: 16px; height: 16px; border-radius: 50%;
+      font-size: 0.55rem; width: 22px; height: 22px; border-radius: 50%;
       background: rgba(58,48,37,0.8); display: flex; align-items: center;
       justify-content: center; flex-shrink: 0; font-style: normal;
+      letter-spacing: 0.01em; font-weight: 600;
     }
     .player-btn.active .seat-num { background: rgba(196,134,74,0.28); color: var(--accent); }
+
+    .seat-direction {
+      display: flex; align-items: center; gap: 0.35rem;
+      font-size: 0.68rem; color: var(--muted-2);
+      padding: 0.18rem 0.1rem 0.35rem;
+    }
+    .seat-direction .dir-arrow {
+      font-size: 0.85rem; color: var(--accent); line-height: 1;
+    }
+    .seat-direction .dir-label { letter-spacing: 0.04em; }
 
     .player-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -727,6 +738,7 @@
 
       <div class="panel-section">
         <div class="panel-label">Seat</div>
+        <div class="seat-direction" id="seat-direction"></div>
         <div class="players-list" id="players-list"></div>
       </div>
 
@@ -1049,11 +1061,19 @@
   function renderPlayers() {
     document.getElementById('players-list').innerHTML = players.map((p, i) => `
       <button class="player-btn ${i === selPlayer ? 'active' : ''}" onclick="selectPlayer(${i})">
-        <span class="seat-num">${i + 1}</span>
+        <span class="seat-num">${esc(p.userName.slice(0, 2).toUpperCase())}</span>
         <span class="player-name">${esc(p.userName)}</span>
         ${p.isBot ? '<span class="bot-tag">BOT</span>' : ''}
       </button>
     `).join('');
+  }
+
+  function renderSeatDirection() {
+    const dir = packDir(selPack);
+    const arrow = dir === 'left' ? '←' : '→';
+    const label = `pass ${dir}`;
+    document.getElementById('seat-direction').innerHTML =
+      `<span class="dir-arrow">${arrow}</span><span class="dir-label">${label}</span>`;
   }
 
   /* ── Render: pack tabs ───────────────────────────────────────────────── */
@@ -1193,7 +1213,7 @@
     const picks = getPackPicks(selPlayer, selPack);
     if (picks.length > 0 && selPick >= picks.length) selPick = picks.length - 1;
     renderPlayers(); renderPackTabs(); renderPickNav();
-    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    renderSeatDirection(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
     if (selTab === 1) renderDeckTab();
     if (selTab === 2) renderPodStats();
   }
@@ -1201,7 +1221,7 @@
   function selectPack(pack) {
     selPack = pack; selPick = 0;
     renderPackTabs(); renderPickNav();
-    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    renderSeatDirection(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
   }
 
   function selectPickFromSlider(pick) {
@@ -1361,7 +1381,7 @@
     updateDraftTitleDisplay();
     renderSwitchDraftBtn();
     renderPlayers(); renderPackTabs(); renderPickNav();
-    renderMainTabs(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    renderSeatDirection(); renderMainTabs(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
     return true;
   }
 
