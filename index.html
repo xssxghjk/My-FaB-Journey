@@ -94,38 +94,6 @@
     .tool-tile-desc { font-size: 0.8rem; color: var(--muted); font-style: italic; line-height: 1.55; }
     .tool-tile-cta { margin-top: 0.75rem; font-size: 0.75rem; color: var(--muted2); font-style: italic; transition: color 0.15s; }
     .tool-tile:hover .tool-tile-cta { color: var(--accent); }
-    .import-section {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-left: 2px solid var(--accent);
-      border-radius: 2px;
-      padding: 1.5rem;
-    }
-    .import-section-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.4rem; font-weight: 700; font-style: italic; margin-bottom: 0.5rem; }
-    .import-section-desc { font-size: 0.85rem; color: var(--muted2); font-style: italic; line-height: 1.65; margin-bottom: 1.25rem; }
-    .import-section-desc a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(196,134,74,0.4); }
-    .import-section-desc a:hover { color: #d4a47a; }
-    .import-section-desc strong { font-weight: normal; color: var(--text); }
-    .import-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-    .import-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      font-family: 'DM Serif Text', Georgia, serif;
-      font-size: 0.82rem;
-      font-style: italic;
-      padding: 0.55rem 1.1rem;
-      border-radius: 2px;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-border);
-      color: var(--accent);
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .import-btn:hover { background: rgba(196,134,74,0.14); border-color: rgba(196,134,74,0.5); }
-    .import-status { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; font-style: italic; color: var(--muted2); }
-    .import-status.success { color: #7ab87a; }
-    .import-status.error   { color: #f87171; }
     .page-footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.72rem; font-style: italic; color: var(--muted-dim); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
     .page-footer a { color: var(--muted); text-decoration: none; }
     .page-footer a:hover { color: var(--text); }
@@ -185,26 +153,6 @@
     </a>
   </div>
 
-  <div class="import-section" id="import-section">
-    <div class="import-section-title">Import FaB Data</div>
-    <div class="import-section-desc">
-      Moving your saved decks and preferences from
-      <a href="https://xssxghjk.github.io/AI-Web-Pages/tcg-tournament-reports/" target="_blank" rel="noopener">AI Web Pages</a>?
-      Click <strong>Export FaB data</strong> on that site (button in the Tournament Reports filter bar),
-      then import the downloaded JSON here.
-    </div>
-    <div class="import-actions">
-      <label for="import-file" class="import-btn">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1v8M4 6l3 3 3-3M2 10.5v1A1.5 1.5 0 003.5 13h7a1.5 1.5 0 001.5-1.5v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Choose JSON file
-      </label>
-      <input type="file" id="import-file" accept=".json" style="display:none">
-      <span id="import-status" class="import-status"></span>
-    </div>
-  </div>
-
   <footer class="page-footer">
     <span>Unofficial fan site &mdash; not affiliated with Legend Story Studios. Flesh and Blood&trade; is a trademark of Legend Story Studios.</span>
     <a href="https://xssxghjk.github.io/AI-Web-Pages/" target="_blank" rel="noopener">AI Web Pages</a>
@@ -212,36 +160,5 @@
     <a href="https://xssxghjk.github.io/AI-Web-Pages/privacy/">Privacy Policy</a>
   </footer>
 </div>
-<script>
-(function() {
-  var input  = document.getElementById('import-file');
-  var status = document.getElementById('import-status');
-  input.addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var data = JSON.parse(ev.target.result);
-        var count = 0;
-        Object.keys(data).forEach(function(key) {
-          var val = data[key];
-          try {
-            localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
-            count++;
-          } catch(e2) {}
-        });
-        status.className = 'import-status success';
-        status.textContent = count + ' key' + (count !== 1 ? 's' : '') + ' imported. Reload any open FaB pages to see your data.';
-      } catch(err) {
-        status.className = 'import-status error';
-        status.textContent = 'Import failed: ' + err.message;
-      }
-      input.value = '';
-    };
-    reader.readAsText(file);
-  });
-})();
-</script>
 </body>
 </html>
