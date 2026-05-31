@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
   <style>
+    [hidden] { display: none !important; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -655,7 +656,7 @@
     const drafts = getSavedDrafts();
     const section = document.getElementById('saved-drafts-section');
     const list = document.getElementById('saved-draft-list');
-    if (!drafts.length) { section.hidden = true; return; }
+    if (!drafts.length) { section.hidden = true; list.innerHTML = ''; return; }
     section.hidden = false;
     list.innerHTML = drafts.map(d => {
       const date = new Date(d.savedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -976,7 +977,7 @@
         </div>`;
     }
 
-    document.getElementById(‘stats-title’).textContent = players[selPlayer].userName + "’s Pod";
+    document.getElementById('stats-title').textContent = players[selPlayer].userName + "'s Pod";
     document.getElementById('stats-count').textContent = total + ' cards';
     document.getElementById('pod-stats-content').innerHTML = `
       <div class="stat-section">
