@@ -1,0 +1,187 @@
+{
+  "version": "2.1",
+  "type": "Draft",
+  "users": {
+    "e7037904-37fa-e5e3-a61b-bebd49fb47e8": {
+      "userID": "e7037904-37fa-e5e3-a61b-bebd49fb47e8",
+      "userName": "BirdOfHermes11",
+      "isBot": false,
+      "picks": [
+        {
+          "packNum": 0,
+          "pickNum": 0,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Auric Shards (blue)_custom_OMN029",
+            "Holo Shield (yellow)_custom_OMN031",
+            "Singeing Flowstride (blue)_custom_OMN073",
+            "Voltbound Duality (blue)_custom_OMN079",
+            "Path of Same Ends (yellow)_custom_OMN066"
+          ]
+        },
+        {
+          "packNum": 0,
+          "pickNum": 1,
+          "pick": [2],
+          "burn": [],
+          "booster": [
+            "Cosmic Duality (blue)_custom_OMN017",
+            "Crackle from Afar (blue)_custom_OMN036",
+            "Destructive Fleetfoot (yellow)_custom_OMN063",
+            "Singeing Flowstride (yellow)_custom_OMN072"
+          ]
+        },
+        {
+          "packNum": 0,
+          "pickNum": 2,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Ebbing Arcstride (yellow)_custom_OMN019",
+            "Auric Shards (blue)_custom_OMN029"
+          ]
+        },
+        {
+          "packNum": 1,
+          "pickNum": 0,
+          "pick": [2],
+          "burn": [],
+          "booster": [
+            "Circular Flowtide (yellow)_custom_OMN033",
+            "Quick Succession (yellow)_custom_OMN084",
+            "Stellar Glide (yellow)_custom_OMN176",
+            "Calmveil of Volthaven (red)_custom_OMN184"
+          ]
+        },
+        {
+          "packNum": 1,
+          "pickNum": 1,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Ebbing Arcstride (blue)_custom_OMN020",
+            "Holo Shield (red)_custom_OMN030",
+            "Rush of Power (yellow)_custom_OMN069"
+          ]
+        },
+        {
+          "packNum": 1,
+          "pickNum": 2,
+          "pick": [1],
+          "burn": [],
+          "booster": [
+            "Constella Flowslide (yellow)_custom_OMN131",
+            "Rift Breaker (blue)_custom_OMN157"
+          ]
+        },
+        {
+          "packNum": 2,
+          "pickNum": 0,
+          "pick": [1],
+          "burn": [],
+          "booster": [
+            "Cosmic Duality (red)_custom_OMN015",
+            "Elliptical Conflux (yellow)_custom_OMN034",
+            "Path of Same Ends (yellow)_custom_OMN066",
+            "Nebula Duality (red)_custom_OMN121"
+          ]
+        },
+        {
+          "packNum": 2,
+          "pickNum": 1,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Mercurial Skies (yellow)_custom_OMN060",
+            "Stunning Swipe (red)_custom_OMN074"
+          ]
+        },
+        {
+          "packNum": 2,
+          "pickNum": 2,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Flow Through (blue)_custom_OMN158"
+          ]
+        }
+      ]
+    },
+    "bot-a1b2c3d4-0000-0000-0000-000000000001": {
+      "userID": "bot-a1b2c3d4-0000-0000-0000-000000000001",
+      "userName": "OmniBot_1",
+      "isBot": true,
+      "picks": [
+        {
+          "packNum": 0,
+          "pickNum": 0,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Lightning Overload (blue)_custom_OMN117",
+            "Nebula Duality (blue)_custom_OMN123",
+            "Thunderous Retort (blue)_custom_OMN198"
+          ]
+        },
+        {
+          "packNum": 0,
+          "pickNum": 1,
+          "pick": [1],
+          "burn": [],
+          "booster": [
+            "Singeing Flowstride (blue)_custom_OMN073",
+            "Voltbound Duality (blue)_custom_OMN079"
+          ]
+        },
+        {
+          "packNum": 0,
+          "pickNum": 2,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Arc Ramp (yellow)_custom_OMN101"
+          ]
+        },
+        {
+          "packNum": 1,
+          "pickNum": 0,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Comet Collision (yellow)_custom_OMN110",
+            "Lightning Overload (yellow)_custom_OMN116"
+          ]
+        },
+        {
+          "packNum": 1,
+          "pickNum": 1,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Arcanic Reproach (blue)_custom_OMN052"
+          ]
+        },
+        {
+          "packNum": 2,
+          "pickNum": 0,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Flittering Forcefield (blue)_custom_OMN183",
+            "Enion Surge (yellow)_custom_OMN113"
+          ]
+        },
+        {
+          "packNum": 2,
+          "pickNum": 1,
+          "pick": [0],
+          "burn": [],
+          "booster": [
+            "Glide Through Starlight (red)_custom_OMN169"
+          ]
+        }
+      ]
+    }
+  }
+}
