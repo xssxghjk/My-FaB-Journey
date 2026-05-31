@@ -1101,7 +1101,7 @@
       e.preventDefault(); dropZone.classList.remove('drag-over');
       if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('click', e => { if (e.target !== uploadBtn) uploadBtn.click(); });
+    dropZone.addEventListener('click', e => { if (!uploadBtn.contains(e.target)) uploadBtn.click(); });
 
     resetBtn.addEventListener('click', () => {
       draft = null; players = [];
