@@ -1271,32 +1271,27 @@
     const pool = players.flatMap((_, idx) => getFullPool(idx));
     const total = pool.length;
 
-    const colors = { red: 0, yellow: 0, blue: 0, none: 0 };
-    const types  = { class: 0, talent: 0, generic: 0 };
+    const colors = { red: 0, yellow: 0, blue: 0 };
+    const classCounts  = {};
+    const talentCounts = {};
 
     for (const cardId of pool) {
       const card = getCardInfo(cardId);
       const c = card.color;
       if (c === 'red' || c === 'yellow' || c === 'blue') colors[c]++;
-      else colors.none++;
 
       const t = card.type || '';
-      const isClass  = FAB_CLASSES.some(cls => t.includes(cls));
-      const isTalent = FAB_TALENTS.some(tal => t.includes(tal));
-      if (isClass)        types.class++;
-      else if (isTalent)  types.talent++;
-      else                types.generic++;
+      const matchedClass  = FAB_CLASSES.find(cls => t.includes(cls));
+      const matchedTalent = FAB_TALENTS.find(tal => t.includes(tal));
+      if (matchedClass)       classCounts[matchedClass]  = (classCounts[matchedClass]  || 0) + 1;
+      else if (matchedTalent) talentCounts[matchedTalent] = (talentCounts[matchedTalent] || 0) + 1;
     }
 
     function pct(n) { return total ? Math.round(n / total * 100) : 0; }
 
-    function colorBarSeg(key, cls) {
+    function colorBarSeg(key) {
       if (!colors[key]) return '';
-      return `<div class="ratio-seg seg-${cls}" style="flex:${colors[key]}"></div>`;
-    }
-    function typeBarSeg(key) {
-      if (!types[key]) return '';
-      return `<div class="ratio-seg seg-${key}" style="flex:${types[key]}"></div>`;
+      return `<div class="ratio-seg seg-${key}" style="flex:${colors[key]}"></div>`;
     }
     function legendItem(dotCls, label, count) {
       if (!count) return '';
@@ -1308,35 +1303,36 @@
         </div>`;
     }
 
+    const classBarSegs   = Object.entries(classCounts).map(([, n]) => `<div class="ratio-seg seg-class" style="flex:${n}"></div>`).join('');
+    const talentBarSegs  = Object.entries(talentCounts).map(([, n]) => `<div class="ratio-seg seg-talent" style="flex:${n}"></div>`).join('');
+    const classLegend    = Object.entries(classCounts).sort((a,b) => b[1]-a[1]).map(([name, n]) => legendItem('class', name, n)).join('');
+    const talentLegend   = Object.entries(talentCounts).sort((a,b) => b[1]-a[1]).map(([name, n]) => legendItem('talent', name, n)).join('');
+
     document.getElementById('stats-title').textContent = 'Entire Pod';
     document.getElementById('stats-count').textContent = total + ' cards';
     document.getElementById('pod-stats-content').innerHTML = `
       <div class="stat-section">
         <div class="stat-section-label">Color Distribution</div>
         <div class="ratio-bar">
-          ${colorBarSeg('red', 'red')}
-          ${colorBarSeg('yellow', 'yellow')}
-          ${colorBarSeg('blue', 'blue')}
-          ${colorBarSeg('none', 'none')}
+          ${colorBarSeg('red')}
+          ${colorBarSeg('yellow')}
+          ${colorBarSeg('blue')}
         </div>
         <div class="stat-legend">
-          ${legendItem('red',    'red',     colors.red)}
-          ${legendItem('yellow', 'yellow',  colors.yellow)}
-          ${legendItem('blue',   'blue',    colors.blue)}
-          ${legendItem('none',   'generic', colors.none)}
+          ${legendItem('red',    'red',    colors.red)}
+          ${legendItem('yellow', 'yellow', colors.yellow)}
+          ${legendItem('blue',   'blue',   colors.blue)}
         </div>
       </div>
       <div class="stat-section">
         <div class="stat-section-label">Class &amp; Talent</div>
         <div class="ratio-bar">
-          ${typeBarSeg('class')}
-          ${typeBarSeg('talent')}
-          ${typeBarSeg('generic')}
+          ${classBarSegs}
+          ${talentBarSegs}
         </div>
         <div class="stat-legend">
-          ${legendItem('class',   'class',   types.class)}
-          ${legendItem('talent',  'talent',  types.talent)}
-          ${legendItem('generic', 'generic', types.generic)}
+          ${classLegend}
+          ${talentLegend}
         </div>
       </div>
     `;
