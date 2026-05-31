@@ -46,64 +46,45 @@
 
     #view-upload, #view-draft { position: relative; z-index: 1; }
 
-    /* ── Upload view ────────────────────────────────────────────────────── */
-    .upload-wrap {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: calc(100vh - 120px); padding: 2rem;
+    /* ── Drafts page (upload view) ──────────────────────────────────────── */
+    .drafts-page {
+      max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem;
+    }
+    .drafts-page.drag-over { outline: 2px dashed rgba(196,134,74,0.45); outline-offset: -8px; border-radius: 4px; }
+
+    .drafts-page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    .upload-zone {
-      width: 100%; max-width: 480px;
-      border: 2px dashed var(--border-2); border-radius: 4px;
-      padding: 3rem 2rem; text-align: center; cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      background: var(--surface);
-    }
-    .upload-zone.drag-over {
-      border-color: var(--accent); background: var(--accent-dim);
-    }
-    .upload-zone:hover { border-color: rgba(196,134,74,0.4); }
+    .drafts-page-title-wrap { display: flex; align-items: baseline; gap: 0.65rem; }
 
-    .upload-icon {
-      width: 56px; height: 56px; margin: 0 auto 1.5rem; color: var(--muted);
-    }
-
-    .upload-title {
+    .drafts-page-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.8rem; font-weight: 700; font-style: italic;
-      color: var(--text); margin-bottom: 0.5rem;
+      font-size: 1.5rem; font-weight: 700; font-style: italic; color: var(--text);
     }
 
-    .upload-desc {
-      color: var(--muted-2); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1.5rem;
-    }
+    .saved-drafts-count { font-size: 0.7rem; color: var(--muted); font-style: italic; }
 
-    .upload-btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.6rem 1.5rem;
+    .import-draft-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.38rem 0.85rem;
       background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.35);
       color: var(--accent); border-radius: 2px; cursor: pointer;
-      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem;
-      letter-spacing: 0.04em; transition: background 0.15s, border-color 0.15s;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem;
+      letter-spacing: 0.03em; transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
     }
-    .upload-btn:hover { background: rgba(196,134,74,0.14); border-color: rgba(196,134,74,0.5); }
+    .import-draft-btn:hover { background: rgba(196,134,74,0.14); border-color: rgba(196,134,74,0.5); }
 
     /* ── Saved drafts list ──────────────────────────────────────────────── */
-    .saved-drafts-section {
-      width: 100%; max-width: 520px; margin-top: 1.75rem;
-    }
+    .saved-drafts-section { width: 100%; }
 
-    .saved-drafts-header {
-      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
+    .drafts-empty {
+      padding: 3.5rem 1rem; text-align: center;
+      color: var(--muted); font-size: 0.85rem; font-style: italic; line-height: 1.8;
     }
-
-    .saved-drafts-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--muted); flex: 1;
-    }
-
-    .saved-drafts-count { font-size: 0.68rem; color: var(--muted); font-style: italic; }
 
     .saved-draft-list { display: flex; flex-direction: column; gap: 0.5rem; }
 
@@ -682,33 +663,22 @@
 <body>
 
 <!-- ── Upload view ─────────────────────────────────────────────────────────── -->
-<div id="view-upload">
-  <div class="upload-wrap">
-    <div class="upload-zone" id="drop-zone">
-      <div class="upload-icon">
-        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
-          <rect x="8" y="8" width="28" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
-          <rect x="20" y="6" width="28" height="40" rx="3" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>
-          <path d="M18 24v10M14 30l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <h2 class="upload-title">Draft Visualizer</h2>
-      <p class="upload-desc">Load an OmniDraft log file to step through every<br>pick — player by player, pack by pack.</p>
-      <label class="upload-btn" id="upload-btn">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1v8M4 6l3-3 3 3M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Choose Draft Log
-        <input type="file" id="file-input" accept=".json,.txt" style="display:none">
-      </label>
-    </div>
-  </div>
-
-  <div id="saved-drafts-section" class="saved-drafts-section" hidden>
-    <div class="saved-drafts-header">
-      <div class="saved-drafts-title">Saved Drafts</div>
+<div id="view-upload" class="drafts-page">
+  <div class="drafts-page-header">
+    <div class="drafts-page-title-wrap">
+      <h2 class="drafts-page-title">My Drafts</h2>
       <span class="saved-drafts-count" id="saved-drafts-count"></span>
     </div>
+    <label class="import-draft-btn" id="upload-btn">
+      <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1v8M4 6l3-3 3 3M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Import Draft
+      <input type="file" id="file-input" accept=".json,.txt" style="display:none">
+    </label>
+  </div>
+
+  <div id="saved-drafts-section" class="saved-drafts-section">
     <div class="saved-draft-list" id="saved-draft-list"></div>
   </div>
 </div>
@@ -905,12 +875,14 @@
   }
 
   function renderSavedDrafts() {
-    const drafts = getSavedDrafts();
-    const section = document.getElementById('saved-drafts-section');
+    const drafts  = getSavedDrafts();
     const list    = document.getElementById('saved-draft-list');
     const countEl = document.getElementById('saved-drafts-count');
-    if (!drafts.length) { section.hidden = true; list.innerHTML = ''; return; }
-    section.hidden = false;
+    if (!drafts.length) {
+      if (countEl) countEl.textContent = '';
+      list.innerHTML = '<div class="drafts-empty">No drafts imported yet.<br>Use the Import Draft button to load an OmniDraft log.</div>';
+      return;
+    }
     if (countEl) countEl.textContent = drafts.length === 1 ? '1 draft' : `${drafts.length} drafts`;
     list.innerHTML = drafts.map(d => {
       const date = new Date(d.savedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -1417,20 +1389,18 @@
     renderSavedDrafts();
 
     const fileInput  = document.getElementById('file-input');
-    const uploadBtn  = document.getElementById('upload-btn');
-    const dropZone   = document.getElementById('drop-zone');
+    const dropZone   = document.getElementById('view-upload');
     const resetBtn   = document.getElementById('reset-btn');
     const poolToggle = document.getElementById('pool-toggle');
 
     fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('dragleave', e => { if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over'); });
     dropZone.addEventListener('drop', e => {
       e.preventDefault(); dropZone.classList.remove('drag-over');
       if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('click', e => { if (!uploadBtn.contains(e.target)) fileInput.click(); });
 
     resetBtn.addEventListener('click', () => {
       draft = null; players = [];
