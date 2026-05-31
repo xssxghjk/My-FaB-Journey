@@ -90,36 +90,56 @@
 
     /* ── Saved drafts list ──────────────────────────────────────────────── */
     .saved-drafts-section {
-      width: 100%; max-width: 480px; margin-top: 1.5rem;
+      width: 100%; max-width: 520px; margin-top: 1.75rem;
+    }
+
+    .saved-drafts-header {
+      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
     }
 
     .saved-drafts-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--muted);
-      margin-bottom: 0.6rem;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); flex: 1;
     }
 
-    .saved-draft-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .saved-drafts-count { font-size: 0.68rem; color: var(--muted); font-style: italic; }
+
+    .saved-draft-list { display: flex; flex-direction: column; gap: 0.5rem; }
 
     .saved-draft-item {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 0.85rem;
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 0.65rem 0.9rem;
       background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid rgba(196,134,74,0.3);
       border-radius: 3px;
+      transition: border-color 0.15s, background 0.15s;
     }
+    .saved-draft-item:hover { border-color: var(--border-2); border-left-color: rgba(196,134,74,0.6); }
 
     .saved-draft-info { flex: 1; min-width: 0; }
 
     .saved-draft-name {
-      font-size: 0.875rem; color: var(--text);
+      font-size: 0.88rem; color: var(--text);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
     }
 
-    .saved-draft-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .saved-draft-date { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+
+    .saved-draft-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+
+    .saved-draft-rename-btn {
+      padding: 0.28rem 0.38rem; flex-shrink: 0;
+      background: transparent; border: 1px solid transparent;
+      color: var(--muted); border-radius: 2px; cursor: pointer;
+      display: flex; align-items: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .saved-draft-rename-btn:hover { color: var(--accent); border-color: rgba(196,134,74,0.3); }
 
     .saved-draft-load-btn {
-      padding: 0.28rem 0.75rem; flex-shrink: 0;
+      padding: 0.28rem 0.7rem; flex-shrink: 0;
       background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.3);
       color: var(--accent); border-radius: 2px; cursor: pointer;
       font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem;
@@ -128,13 +148,40 @@
     .saved-draft-load-btn:hover { background: rgba(196,134,74,0.16); }
 
     .saved-draft-del-btn {
-      padding: 0.28rem 0.5rem; flex-shrink: 0;
+      padding: 0.28rem 0.45rem; flex-shrink: 0;
       background: transparent; border: 1px solid rgba(255,255,255,0.07);
       color: var(--muted); border-radius: 2px; cursor: pointer;
       font-size: 0.75rem; line-height: 1;
       transition: color 0.15s, border-color 0.15s;
     }
     .saved-draft-del-btn:hover { color: var(--red-c); border-color: rgba(224,80,64,0.4); }
+
+    .saved-draft-rename-form {
+      display: flex; align-items: center; gap: 0.4rem; width: 100%;
+    }
+    .saved-draft-rename-input {
+      flex: 1; background: var(--surface-2); border: 1px solid var(--border-2);
+      color: var(--text); font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.85rem; padding: 0.25rem 0.5rem; border-radius: 2px;
+      outline: none; min-width: 0;
+    }
+    .saved-draft-rename-input:focus { border-color: var(--accent); }
+    .saved-draft-rename-save-btn {
+      padding: 0.25rem 0.6rem; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.3);
+      color: var(--accent); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem;
+      transition: background 0.15s;
+    }
+    .saved-draft-rename-save-btn:hover { background: rgba(196,134,74,0.16); }
+    .saved-draft-rename-cancel-btn {
+      padding: 0.25rem 0.5rem; flex-shrink: 0;
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem;
+      transition: color 0.15s;
+    }
+    .saved-draft-rename-cancel-btn:hover { color: var(--text); }
 
     /* ── Draft layout ───────────────────────────────────────────────────── */
     .draft-layout { display: flex; }
@@ -495,6 +542,125 @@
     .stat-count { color: var(--text); }
     .stat-pct   { color: var(--muted); font-size: 0.72rem; }
 
+    /* ── Draft header bar ──────────────────────────────────────────────── */
+    .draft-header-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.5rem 1.25rem; gap: 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: relative; z-index: 20;
+    }
+
+    .draft-title-display { display: flex; align-items: center; gap: 0.4rem; }
+    .draft-title-edit    { display: flex; align-items: center; gap: 0.4rem; }
+
+    .draft-title-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem; font-weight: 600; font-style: italic; color: var(--text);
+    }
+
+    .draft-title-edit-btn {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      padding: 2px 4px; border-radius: 2px; display: flex; align-items: center;
+      transition: color 0.15s;
+    }
+    .draft-title-edit-btn:hover { color: var(--accent); }
+
+    .draft-title-input {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      color: var(--text); font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.9rem; padding: 0.27rem 0.55rem; border-radius: 2px;
+      outline: none; min-width: 160px;
+    }
+    .draft-title-input:focus { border-color: var(--accent); }
+
+    .draft-title-save-btn {
+      padding: 0.27rem 0.7rem;
+      background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.3);
+      color: var(--accent); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem;
+      transition: background 0.15s;
+    }
+    .draft-title-save-btn:hover { background: rgba(196,134,74,0.16); }
+
+    .draft-title-cancel-btn {
+      padding: 0.27rem 0.6rem;
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem;
+      transition: color 0.15s;
+    }
+    .draft-title-cancel-btn:hover { color: var(--text); }
+
+    /* ── Switch-draft button & dropdown ─────────────────────────────────── */
+    .switch-draft-wrap { position: relative; flex-shrink: 0; }
+
+    .switch-draft-btn {
+      display: flex; align-items: center; gap: 0.38rem;
+      padding: 0.3rem 0.75rem;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--muted-2); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.75rem;
+      letter-spacing: 0.02em; white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .switch-draft-btn:hover { color: var(--text); border-color: var(--border-2); }
+
+    .switch-draft-dropdown {
+      position: absolute; right: 0; top: calc(100% + 5px);
+      min-width: 250px; max-width: 320px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 4px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      z-index: 200; overflow: hidden;
+    }
+
+    .switch-dropdown-header {
+      padding: 0.55rem 0.85rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .switch-dropdown-title {
+      font-size: 0.62rem; font-style: italic; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    .switch-dropdown-items {
+      padding: 0.35rem; display: flex; flex-direction: column; gap: 2px;
+      max-height: 260px; overflow-y: auto;
+    }
+
+    .switch-draft-item {
+      display: flex; align-items: center; gap: 0.45rem;
+      padding: 0.45rem 0.55rem; border-radius: 3px;
+      border: 1px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .switch-draft-item:hover { background: var(--surface-2); border-color: var(--border); }
+    .switch-draft-item.is-current { background: var(--accent-dim); border-color: rgba(196,134,74,0.2); }
+
+    .switch-item-info { flex: 1; min-width: 0; }
+
+    .switch-item-name {
+      font-size: 0.78rem; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .switch-draft-item.is-current .switch-item-name { color: var(--accent); }
+
+    .switch-item-date { font-size: 0.65rem; color: var(--muted); margin-top: 1px; }
+
+    .switch-item-load-btn {
+      flex-shrink: 0; padding: 2px 8px;
+      background: none; border: 1px solid rgba(196,134,74,0.25);
+      color: var(--accent); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.68rem;
+      transition: background 0.12s;
+    }
+    .switch-item-load-btn:hover { background: var(--accent-dim); }
+
+    .switch-item-current-tag {
+      flex-shrink: 0; font-size: 0.62rem; color: var(--muted); font-style: italic;
+    }
+
     /* ── Mobile ─────────────────────────────────────────────────────────── */
     @media (max-width: 768px) {
       .draft-layout { flex-direction: column; }
@@ -539,13 +705,51 @@
   </div>
 
   <div id="saved-drafts-section" class="saved-drafts-section" hidden>
-    <div class="saved-drafts-title">Saved Drafts</div>
+    <div class="saved-drafts-header">
+      <div class="saved-drafts-title">Saved Drafts</div>
+      <span class="saved-drafts-count" id="saved-drafts-count"></span>
+    </div>
     <div class="saved-draft-list" id="saved-draft-list"></div>
   </div>
 </div>
 
 <!-- ── Draft view ──────────────────────────────────────────────────────────── -->
 <div id="view-draft" hidden>
+
+  <!-- Draft header: current name + switch-draft button -->
+  <div class="draft-header-bar">
+    <div id="draft-title-display" class="draft-title-display">
+      <span class="draft-title-name" id="draft-title-name"></span>
+      <button class="draft-title-edit-btn" id="draft-title-edit-btn" title="Rename draft">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M8.5 1.5a1.414 1.414 0 012 2L4 10l-3 .75.75-3L8.5 1.5z"
+                stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <div id="draft-title-edit" class="draft-title-edit" hidden>
+      <input class="draft-title-input" id="draft-title-input" type="text" placeholder="Draft name">
+      <button class="draft-title-save-btn" id="draft-title-save-btn">Save</button>
+      <button class="draft-title-cancel-btn" id="draft-title-cancel-btn">Cancel</button>
+    </div>
+    <div class="switch-draft-wrap" id="switch-draft-wrap" hidden>
+      <button class="switch-draft-btn" id="switch-draft-btn">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="1" y="1.5" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect x="1" y="5.25" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect x="1" y="9" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        My Drafts
+      </button>
+      <div class="switch-draft-dropdown" id="switch-draft-dropdown" hidden>
+        <div class="switch-dropdown-header">
+          <div class="switch-dropdown-title">Saved Drafts</div>
+        </div>
+        <div class="switch-dropdown-items" id="switch-dropdown-items"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="draft-layout">
 
     <!-- Left control panel -->
@@ -639,38 +843,163 @@
       try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts)); } catch {}
     }
     renderSavedDrafts();
+    return id;
   }
 
   function deleteSavedDraft(id) {
     const drafts = getSavedDrafts().filter(d => d.id !== id);
     localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+    if (currentDraftId === id) currentDraftId = null;
     renderSavedDrafts();
+    renderSwitchDraftBtn();
+  }
+
+  function renameDraft(id, newName) {
+    if (!newName || !newName.trim()) return;
+    const drafts = getSavedDrafts();
+    const d = drafts.find(d => d.id === id);
+    if (!d) return;
+    d.name = newName.trim();
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+    if (currentDraftId === id) {
+      currentDraftName = d.name;
+      updateDraftTitleDisplay();
+    }
+    renderSavedDrafts();
+    renderSwitchDropdown();
+  }
+
+  function startRenameDraft(id) {
+    const d = getSavedDrafts().find(d => d.id === id);
+    if (!d) return;
+    const item = document.querySelector(`.saved-draft-item[data-id="${id}"]`);
+    if (!item) return;
+    item.innerHTML = `
+      <div class="saved-draft-rename-form">
+        <input class="saved-draft-rename-input" id="sdr-input-${id}" type="text" value="${esc(d.name)}">
+        <button class="saved-draft-rename-save-btn" onclick="commitRenameDraft('${esc(id)}')">Save</button>
+        <button class="saved-draft-rename-cancel-btn" onclick="renderSavedDrafts()">Cancel</button>
+      </div>
+    `;
+    const input = document.getElementById(`sdr-input-${id}`);
+    if (input) {
+      input.focus(); input.select();
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter')  { e.preventDefault(); commitRenameDraft(id); }
+        if (e.key === 'Escape') { e.preventDefault(); renderSavedDrafts(); }
+      });
+    }
+  }
+
+  function commitRenameDraft(id) {
+    const input = document.getElementById(`sdr-input-${id}`);
+    if (!input) return;
+    const newName = input.value.trim();
+    if (newName) renameDraft(id, newName);
+    else renderSavedDrafts();
   }
 
   function loadSavedDraft(id) {
     const d = getSavedDrafts().find(d => d.id === id);
-    if (d) loadDraft(d.data);
+    if (d) { loadDraft(d.data, d.id, d.name); closeSwitchDropdown(); }
   }
 
   function renderSavedDrafts() {
     const drafts = getSavedDrafts();
     const section = document.getElementById('saved-drafts-section');
-    const list = document.getElementById('saved-draft-list');
+    const list    = document.getElementById('saved-draft-list');
+    const countEl = document.getElementById('saved-drafts-count');
     if (!drafts.length) { section.hidden = true; list.innerHTML = ''; return; }
     section.hidden = false;
+    if (countEl) countEl.textContent = drafts.length === 1 ? '1 draft' : `${drafts.length} drafts`;
     list.innerHTML = drafts.map(d => {
       const date = new Date(d.savedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
       return `
-        <div class="saved-draft-item">
+        <div class="saved-draft-item" data-id="${esc(d.id)}">
           <div class="saved-draft-info">
             <div class="saved-draft-name">${esc(d.name)}</div>
             <div class="saved-draft-date">${date}</div>
           </div>
-          <button class="saved-draft-load-btn" onclick="loadSavedDraft('${esc(d.id)}')">Load</button>
-          <button class="saved-draft-del-btn" onclick="deleteSavedDraft('${esc(d.id)}')" title="Remove from saved drafts">✕</button>
+          <div class="saved-draft-actions">
+            <button class="saved-draft-rename-btn" onclick="startRenameDraft('${esc(d.id)}')" title="Rename">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                <path d="M8.5 1.5a1.414 1.414 0 012 2L4 10l-3 .75.75-3L8.5 1.5z"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="saved-draft-load-btn" onclick="loadSavedDraft('${esc(d.id)}')">Load</button>
+            <button class="saved-draft-del-btn" onclick="deleteSavedDraft('${esc(d.id)}')" title="Remove">✕</button>
+          </div>
         </div>
       `;
     }).join('');
+  }
+
+  /* ── Draft title bar helpers ─────────────────────────────────────────── */
+  function updateDraftTitleDisplay() {
+    const el = document.getElementById('draft-title-name');
+    if (el) el.textContent = currentDraftName || 'Untitled Draft';
+  }
+
+  function showDraftTitleEdit() {
+    document.getElementById('draft-title-display').hidden = true;
+    document.getElementById('draft-title-edit').hidden = false;
+    const input = document.getElementById('draft-title-input');
+    input.value = currentDraftName;
+    input.focus(); input.select();
+  }
+
+  function saveDraftTitle() {
+    const input = document.getElementById('draft-title-input');
+    const newName = input.value.trim();
+    if (newName && currentDraftId) renameDraft(currentDraftId, newName);
+    else if (newName) { currentDraftName = newName; updateDraftTitleDisplay(); }
+    cancelDraftTitleEdit();
+  }
+
+  function cancelDraftTitleEdit() {
+    document.getElementById('draft-title-edit').hidden = true;
+    document.getElementById('draft-title-display').hidden = false;
+  }
+
+  /* ── Switch-draft dropdown ───────────────────────────────────────────── */
+  function renderSwitchDraftBtn() {
+    const wrap = document.getElementById('switch-draft-wrap');
+    if (!wrap) return;
+    wrap.hidden = getSavedDrafts().length === 0;
+  }
+
+  function renderSwitchDropdown() {
+    const container = document.getElementById('switch-dropdown-items');
+    if (!container) return;
+    const drafts = getSavedDrafts();
+    container.innerHTML = drafts.map(d => {
+      const date = new Date(d.savedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      const isCurrent = d.id === currentDraftId;
+      return `
+        <div class="switch-draft-item${isCurrent ? ' is-current' : ''}">
+          <div class="switch-item-info">
+            <div class="switch-item-name">${esc(d.name)}</div>
+            <div class="switch-item-date">${date}</div>
+          </div>
+          ${isCurrent
+            ? '<span class="switch-item-current-tag">current</span>'
+            : `<button class="switch-item-load-btn" onclick="loadSavedDraft('${esc(d.id)}')">Load</button>`}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleSwitchDropdown() {
+    const dropdown = document.getElementById('switch-draft-dropdown');
+    if (!dropdown) return;
+    if (dropdown.hidden) { renderSwitchDropdown(); dropdown.hidden = false; }
+    else dropdown.hidden = true;
+  }
+
+  function closeSwitchDropdown() {
+    const dropdown = document.getElementById('switch-draft-dropdown');
+    if (dropdown) dropdown.hidden = true;
   }
 
   /* ── State ───────────────────────────────────────────────────────────── */
@@ -679,6 +1008,8 @@
   let selPlayer = 0, selPack = 0, selPick = 0;
   let poolOpen = false;
   let selTab = 0;
+  let currentDraftId   = null;
+  let currentDraftName = '';
 
   /* ── Data helpers ────────────────────────────────────────────────────── */
   function parseCardId(id) {
@@ -1050,13 +1381,17 @@
   }
 
   /* ── Load draft ──────────────────────────────────────────────────────── */
-  function loadDraft(json) {
+  function loadDraft(json, draftId, draftName) {
     draft   = json;
     players = Object.values(json.users || {});
     if (!players.length) { alert('No players found in draft log.'); return false; }
+    currentDraftId   = draftId   || null;
+    currentDraftName = draftName || 'Draft';
     selPlayer = 0; selPack = 0; selPick = 0; selTab = 0;
     document.getElementById('view-upload').hidden = true;
     document.getElementById('view-draft').hidden  = false;
+    updateDraftTitleDisplay();
+    renderSwitchDraftBtn();
     renderPlayers(); renderPackTabs(); renderPickNav();
     renderMainTabs(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
     return true;
@@ -1074,13 +1409,11 @@
         return;
       }
       const name = file.name.replace(/\.[^.]+$/, '') || 'Draft';
-      if (loadDraft(json)) {
-        try { saveDraftToStorage(json, name); } catch {}
-      }
+      let savedId = null;
+      try { savedId = saveDraftToStorage(json, name); } catch {}
+      loadDraft(json, savedId, name);
     };
-    reader.onerror = () => {
-      alert('Could not read file.');
-    };
+    reader.onerror = () => alert('Could not read file.');
     reader.readAsText(file);
   }
 
@@ -1105,12 +1438,35 @@
 
     resetBtn.addEventListener('click', () => {
       draft = null; players = [];
+      currentDraftId = null; currentDraftName = '';
+      closeSwitchDropdown();
+      cancelDraftTitleEdit();
       document.getElementById('view-draft').hidden  = true;
       document.getElementById('view-upload').hidden = false;
       fileInput.value = '';
     });
 
     poolToggle.addEventListener('click', () => { poolOpen = !poolOpen; renderPool(); });
+
+    /* Draft title editing */
+    document.getElementById('draft-title-edit-btn').addEventListener('click', showDraftTitleEdit);
+    document.getElementById('draft-title-save-btn').addEventListener('click', saveDraftTitle);
+    document.getElementById('draft-title-cancel-btn').addEventListener('click', cancelDraftTitleEdit);
+    document.getElementById('draft-title-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); saveDraftTitle(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelDraftTitleEdit(); }
+    });
+
+    /* Switch-draft button */
+    document.getElementById('switch-draft-btn').addEventListener('click', e => {
+      e.stopPropagation(); toggleSwitchDropdown();
+    });
+
+    /* Close switch dropdown when clicking outside */
+    document.addEventListener('click', e => {
+      const wrap = document.getElementById('switch-draft-wrap');
+      if (wrap && !wrap.contains(e.target)) closeSwitchDropdown();
+    });
 
     document.addEventListener('keydown', e => {
       if (!draft) return;
