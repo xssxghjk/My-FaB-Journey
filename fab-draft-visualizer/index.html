@@ -1052,26 +1052,33 @@
   function loadDraft(json) {
     draft   = json;
     players = Object.values(json.users || {});
-    if (!players.length) { alert('No players found in draft log.'); return; }
+    if (!players.length) { alert('No players found in draft log.'); return false; }
     selPlayer = 0; selPack = 0; selPick = 0; selTab = 0;
     document.getElementById('view-upload').hidden = true;
     document.getElementById('view-draft').hidden  = false;
     renderPlayers(); renderPackTabs(); renderPickNav();
     renderMainTabs(); renderBoosterHeader(); renderBoosterGrid(); renderPool();
+    return true;
   }
 
   /* ── File input ──────────────────────────────────────────────────────── */
   function handleFile(file) {
     const reader = new FileReader();
     reader.onload = e => {
+      let json;
       try {
-        const json = JSON.parse(e.target.result);
-        const name = file.name.replace(/\.[^.]+$/, '') || 'Draft';
-        loadDraft(json);
-        saveDraftToStorage(json, name);
-      } catch (err) {
+        json = JSON.parse(e.target.result);
+      } catch {
         alert('Could not parse file. Please provide a valid draft log JSON.');
+        return;
       }
+      const name = file.name.replace(/\.[^.]+$/, '') || 'Draft';
+      if (loadDraft(json)) {
+        try { saveDraftToStorage(json, name); } catch {}
+      }
+    };
+    reader.onerror = () => {
+      alert('Could not read file.');
     };
     reader.readAsText(file);
   }
