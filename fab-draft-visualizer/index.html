@@ -495,7 +495,6 @@
   </div>
 </div>
 
-<script src="../nav.js"></script>
 <script>
   /* ── Helpers ─────────────────────────────────────────────────────────── */
   function esc(s) {
@@ -770,7 +769,7 @@
 
   /* ── Render: deck tab ────────────────────────────────────────────────── */
   function renderDeckTab() {
-    const pool = getFullPool(selPlayer);
+    const pool = getPool(selPlayer, selPack, selPick);
     document.getElementById('deck-title').textContent = players[selPlayer].userName + "'s Deck";
     document.getElementById('deck-count').textContent = pool.length + ' cards';
     document.getElementById('deck-grid').innerHTML = pool.map(cardId => {
