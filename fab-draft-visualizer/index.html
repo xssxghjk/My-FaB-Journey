@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Draft Visualizer — My FaB Journey</title>
+  <script src="../nav.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #1c1814;
+      --surface:    #252018;
+      --surface-2:  #2e2820;
+      --border:     #3a3025;
+      --border-2:   #4a4030;
+      --accent:     #c4864a;
+      --accent-dim: rgba(196,134,74,0.08);
+      --text:       #e8dfd0;
+      --muted:      #7a6e60;
+      --muted-2:    #9a8a76;
+      --red-c:      #e05040;
+      --yellow-c:   #d4924a;
+      --blue-c:     #5ab4cc;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Serif Text', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(232,223,208,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none; z-index: 0;
+    }
+
+    #view-upload, #view-draft { position: relative; z-index: 1; }
+
+    /* ── Upload view ────────────────────────────────────────────────────── */
+    .upload-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 120px); padding: 2rem;
+    }
+
+    .upload-zone {
+      width: 100%; max-width: 480px;
+      border: 2px dashed var(--border-2); border-radius: 4px;
+      padding: 3rem 2rem; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--surface);
+    }
+    .upload-zone.drag-over {
+      border-color: var(--accent); background: var(--accent-dim);
+    }
+    .upload-zone:hover { border-color: rgba(196,134,74,0.4); }
+
+    .upload-icon {
+      width: 56px; height: 56px; margin: 0 auto 1.5rem; color: var(--muted);
+    }
+
+    .upload-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.8rem; font-weight: 700; font-style: italic;
+      color: var(--text); margin-bottom: 0.5rem;
+    }
+
+    .upload-desc {
+      color: var(--muted-2); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1.5rem;
+    }
+
+    .upload-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.5rem;
+      background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.35);
+      color: var(--accent); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem;
+      letter-spacing: 0.04em; transition: background 0.15s, border-color 0.15s;
+    }
+    .upload-btn:hover { background: rgba(196,134,74,0.14); border-color: rgba(196,134,74,0.5); }
+
+    /* ── Draft layout ───────────────────────────────────────────────────── */
+    .draft-layout { display: flex; }
+
+    .draft-panel {
+      width: 200px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 1rem 0.75rem;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+
+    .draft-main { flex: 1; padding: 1.5rem; min-width: 0; }
+
+    /* ── Panel elements ─────────────────────────────────────────────────── */
+    .panel-section { display: flex; flex-direction: column; gap: 0.45rem; }
+
+    .panel-label {
+      font-size: 0.58rem; font-weight: 400; font-style: italic;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    }
+
+    .players-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .player-btn {
+      display: flex; align-items: center; gap: 0.5rem; width: 100%;
+      padding: 0.42rem 0.55rem;
+      background: none; border: 1px solid transparent; border-radius: 2px;
+      cursor: pointer; color: var(--muted-2);
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.76rem;
+      text-align: left; transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .player-btn:hover { color: var(--text); background: rgba(232,223,208,0.04); border-color: var(--border); }
+    .player-btn.active {
+      color: var(--accent); background: var(--accent-dim);
+      border-color: rgba(196,134,74,0.25);
+    }
+
+    .seat-num {
+      font-size: 0.6rem; width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(58,48,37,0.8); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; font-style: normal;
+    }
+    .player-btn.active .seat-num { background: rgba(196,134,74,0.28); color: var(--accent); }
+
+    .player-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .bot-tag {
+      font-size: 0.52rem; letter-spacing: 0.07em; color: var(--muted);
+      background: var(--border); padding: 1px 4px; border-radius: 2px; flex-shrink: 0;
+    }
+
+    .pack-tabs { display: flex; gap: 4px; }
+
+    .pack-tab {
+      flex: 1; padding: 0.38rem 0;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 2px;
+      color: var(--muted-2); font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.75rem; cursor: pointer; text-align: center;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .pack-tab:hover { color: var(--text); border-color: var(--border-2); }
+    .pack-tab.active {
+      color: var(--accent); background: var(--accent-dim);
+      border-color: rgba(196,134,74,0.4);
+    }
+
+    .pick-controls {
+      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
+    }
+
+    .nav-btn {
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 2px;
+      color: var(--muted-2); cursor: pointer; flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) { color: var(--text); background: var(--border); }
+    .nav-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+    .pick-info-span {
+      flex: 1; text-align: center; font-size: 0.74rem; color: var(--muted-2);
+    }
+
+    .pick-slider {
+      width: 100%; -webkit-appearance: none; appearance: none;
+      height: 3px; background: var(--border-2); border-radius: 2px; outline: none; cursor: pointer;
+    }
+    .pick-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: none;
+    }
+    .pick-slider::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: none;
+    }
+
+    .reset-btn {
+      width: 100%; padding: 0.5rem; background: none;
+      border: 1px solid var(--border); border-radius: 2px;
+      color: var(--muted); font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.7rem; cursor: pointer; margin-top: auto;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .reset-btn:hover { color: var(--text); border-color: var(--border-2); }
+
+    /* ── Booster header ─────────────────────────────────────────────────── */
+    .booster-header {
+      display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
+      margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+    }
+
+    .booster-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.45rem; font-weight: 700; font-style: italic; color: var(--text);
+    }
+
+    .booster-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+
+    .meta-badge {
+      font-size: 0.68rem; padding: 2px 7px; border-radius: 2px; border: 1px solid;
+      font-style: normal;
+    }
+    .meta-badge.player { color: var(--accent); border-color: rgba(196,134,74,0.3); background: var(--accent-dim); }
+    .meta-badge.dir    { color: var(--muted-2); border-color: var(--border); background: var(--surface-2); }
+    .meta-badge.size   { color: var(--muted); border-color: var(--border); }
+
+    /* ── Booster grid ───────────────────────────────────────────────────── */
+    .booster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem; margin-bottom: 2.5rem;
+    }
+
+    .card-item {
+      border-radius: 4px; overflow: hidden;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .card-item:hover { transform: translateY(-3px); z-index: 2; }
+    .card-item.is-picked {
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 1px rgba(201,168,76,0.2), 0 6px 22px rgba(201,168,76,0.18);
+    }
+
+    .card-img-wrap {
+      position: relative; aspect-ratio: 5/7;
+      background: var(--surface-2); overflow: hidden;
+    }
+
+    .card-img-fallback {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 0.6rem;
+      font-size: 0.62rem; text-align: center; color: var(--muted-2);
+      background: var(--surface-2); line-height: 1.4;
+    }
+    .card-img-fallback .fallback-color {
+      font-size: 0.55rem; color: var(--muted); margin-top: 0.25rem; font-style: italic;
+    }
+
+    .card-img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+
+    .pick-badge {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(196,160,70,0.9); color: #1c1814;
+      font-size: 0.58rem; font-weight: 700; font-style: normal;
+      letter-spacing: 0.1em; text-transform: uppercase; text-align: center;
+      padding: 3px 0;
+    }
+
+    .rarity-badge {
+      position: absolute; top: 4px; right: 4px;
+      width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.54rem; font-weight: 700; font-style: normal;
+    }
+    .rarity-common    { background: rgba(80,80,80,0.85); color: #ccc; }
+    .rarity-rare      { background: rgba(70,130,210,0.9); color: #fff; }
+    .rarity-majestic  { background: rgba(170,90,210,0.9); color: #fff; }
+    .rarity-legendary { background: rgba(210,155,25,0.9); color: #1c1814; }
+    .rarity-fabled    { background: rgba(210,55,55,0.9); color: #fff; }
+    .rarity-token     { background: rgba(70,170,110,0.9); color: #fff; }
+
+    .card-label {
+      padding: 0.32rem 0.5rem; background: var(--surface);
+      display: flex; align-items: center; gap: 0.3rem; min-height: 28px;
+    }
+
+    .card-name-label {
+      flex: 1; font-size: 0.63rem; color: var(--text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3;
+    }
+
+    .color-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-red    { background: var(--red-c); }
+    .dot-yellow { background: var(--yellow-c); }
+    .dot-blue   { background: var(--blue-c); }
+
+    /* ── Pool section ───────────────────────────────────────────────────── */
+    .pool-section { border-top: 1px solid var(--border); padding-top: 1rem; }
+
+    .pool-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      cursor: pointer; padding: 0.35rem 0; user-select: none;
+      color: var(--muted-2); font-size: 0.85rem; transition: color 0.15s;
+    }
+    .pool-header:hover { color: var(--text); }
+
+    .pool-count { font-size: 0.72rem; color: var(--muted); }
+
+    .pool-chevron { margin-left: auto; flex-shrink: 0; transition: transform 0.2s; }
+    .pool-chevron.open { transform: rotate(180deg); }
+
+    .pool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+      gap: 0.45rem; margin-top: 0.75rem;
+    }
+
+    .pool-card {
+      border-radius: 3px; overflow: hidden;
+      border: 1px solid var(--border); background: var(--surface);
+      transition: transform 0.15s;
+    }
+    .pool-card:hover { transform: translateY(-2px); }
+    .pool-card.color-red    { border-color: rgba(224,80,64,0.35); }
+    .pool-card.color-yellow { border-color: rgba(212,146,74,0.35); }
+    .pool-card.color-blue   { border-color: rgba(90,180,204,0.35); }
+
+    .pool-img-wrap { aspect-ratio: 5/7; background: var(--surface-2); overflow: hidden; position: relative; }
+
+    .pool-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .pool-fallback {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 0.25rem; font-size: 0.52rem; text-align: center; color: var(--muted); line-height: 1.3;
+    }
+
+    /* ── Mobile ─────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .draft-layout { flex-direction: column; }
+      .draft-panel {
+        width: 100%; height: auto; position: relative;
+        border-right: none; border-bottom: 1px solid var(--border);
+        padding: 0.75rem; gap: 0.75rem;
+      }
+      .players-list { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+      .player-btn { width: auto; flex: 0 0 auto; }
+      .player-name { display: none; }
+      .reset-btn { margin-top: 0; }
+      .draft-main { padding: 1rem; }
+      .booster-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+      .pool-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Upload view ─────────────────────────────────────────────────────────── -->
+<div id="view-upload">
+  <div class="upload-wrap">
+    <div class="upload-zone" id="drop-zone">
+      <div class="upload-icon">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
+          <rect x="8" y="8" width="28" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
+          <rect x="20" y="6" width="28" height="40" rx="3" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>
+          <path d="M18 24v10M14 30l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="upload-title">Draft Visualizer</h2>
+      <p class="upload-desc">Load an OmniDraft log file to step through every<br>pick — player by player, pack by pack.</p>
+      <button class="upload-btn" id="upload-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1v8M4 6l3-3 3 3M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Choose Draft Log
+      </button>
+      <input type="file" id="file-input" accept=".json,.txt" style="display:none">
+    </div>
+  </div>
+</div>
+
+<!-- ── Draft view ──────────────────────────────────────────────────────────── -->
+<div id="view-draft" hidden>
+  <div class="draft-layout">
+
+    <!-- Left control panel -->
+    <aside class="draft-panel">
+
+      <div class="panel-section">
+        <div class="panel-label">Seat</div>
+        <div class="players-list" id="players-list"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Pack</div>
+        <div class="pack-tabs" id="pack-tabs"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Pick</div>
+        <div id="pick-nav-wrap"></div>
+      </div>
+
+      <button class="reset-btn" id="reset-btn">↩ Load Different Draft</button>
+    </aside>
+
+    <!-- Main content -->
+    <div class="draft-main">
+      <div class="booster-header" id="booster-header"></div>
+      <div class="booster-grid" id="booster-grid"></div>
+
+      <div class="pool-section">
+        <div class="pool-header" id="pool-toggle">
+          <span>Draft Pool</span>
+          <span class="pool-count" id="pool-count"></span>
+          <svg class="pool-chevron" id="pool-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="pool-grid" id="pool-grid" hidden></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../nav.js"></script>
+<script>
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ── State ───────────────────────────────────────────────────────────── */
+  let draft = null;
+  let players = [];
+  let selPlayer = 0, selPack = 0, selPick = 0;
+  let poolOpen = false;
+
+  /* ── Data helpers ────────────────────────────────────────────────────── */
+  function parseCardId(id) {
+    const ci = id.indexOf('_custom_');
+    const namePart = ci >= 0 ? id.slice(0, ci) : id;
+    const m = namePart.match(/\s*\((\w+)\)\s*$/);
+    return {
+      name: m ? namePart.slice(0, m.index).trim() : namePart.trim(),
+      color: m ? m[1].toLowerCase() : null,
+    };
+  }
+
+  function getCardInfo(id) {
+    const cd = (draft.carddata || {})[id] || {};
+    const { name, color } = parseCardId(id);
+    const rawDisplayName = (cd.printed_names && cd.printed_names.en) || cd.name || '';
+    const displayName = rawDisplayName
+      ? rawDisplayName.replace(/\s*\(\w+\)\s*$/, '').trim()
+      : name;
+    return {
+      name: displayName || name,
+      color,
+      imgUrl: (cd.image_uris && cd.image_uris.en) || null,
+      type: cd.type || '',
+      rarity: (cd.rarity || '').toLowerCase(),
+    };
+  }
+
+  function getPackPicks(playerIdx, packNum) {
+    return (players[playerIdx].picks || [])
+      .filter(p => p.packNum === packNum)
+      .sort((a, b) => a.pickNum - b.pickNum);
+  }
+
+  function getPool(playerIdx, upToPack, upToPickIdx) {
+    const pool = [];
+    for (let pn = 0; pn <= upToPack; pn++) {
+      const picks = getPackPicks(playerIdx, pn);
+      const limit = pn < upToPack ? picks.length : upToPickIdx + 1;
+      for (let pi = 0; pi < limit; pi++) {
+        const pk = picks[pi];
+        if (pk && pk.pick.length > 0) {
+          const id = pk.booster[pk.pick[0]];
+          if (id) pool.push(id);
+        }
+      }
+    }
+    return pool;
+  }
+
+  function packDir(packNum) {
+    return packNum % 2 === 0 ? 'left' : 'right';
+  }
+
+  const RARITY_CODE = { common: 'C', rare: 'R', majestic: 'M', legendary: 'L', fabled: 'F', token: 'T' };
+
+  /* ── Render: players list ────────────────────────────────────────────── */
+  function renderPlayers() {
+    document.getElementById('players-list').innerHTML = players.map((p, i) => `
+      <button class="player-btn ${i === selPlayer ? 'active' : ''}" onclick="selectPlayer(${i})">
+        <span class="seat-num">${i + 1}</span>
+        <span class="player-name">${esc(p.userName)}</span>
+        ${p.isBot ? '<span class="bot-tag">BOT</span>' : ''}
+      </button>
+    `).join('');
+  }
+
+  /* ── Render: pack tabs ───────────────────────────────────────────────── */
+  function renderPackTabs() {
+    document.getElementById('pack-tabs').innerHTML = [0, 1, 2].map(i => `
+      <button class="pack-tab ${i === selPack ? 'active' : ''}" onclick="selectPack(${i})">P${i + 1}</button>
+    `).join('');
+  }
+
+  /* ── Render: pick nav (full rebuild; called on pack/player change) ───── */
+  function renderPickNav() {
+    const picks = getPackPicks(selPlayer, selPack);
+    const total = picks.length;
+    const wrap = document.getElementById('pick-nav-wrap');
+    wrap.innerHTML = `
+      <div class="pick-controls">
+        <button class="nav-btn" id="pick-prev-btn" aria-label="Previous pick">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="pick-info-span" id="pick-info-span">${selPick + 1} / ${total}</span>
+        <button class="nav-btn" id="pick-next-btn" aria-label="Next pick">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <input type="range" class="pick-slider" id="pick-slider"
+             min="0" max="${total - 1}" value="${selPick}">
+    `;
+    document.getElementById('pick-prev-btn').addEventListener('click', prevPick);
+    document.getElementById('pick-next-btn').addEventListener('click', nextPick);
+    document.getElementById('pick-slider').addEventListener('input', e => {
+      selectPickFromSlider(parseInt(e.target.value));
+    });
+    updatePickNavState();
+  }
+
+  /* ── Update pick nav state without rebuilding ────────────────────────── */
+  function updatePickNavState() {
+    const picks = getPackPicks(selPlayer, selPack);
+    const total = picks.length;
+    const infoEl  = document.getElementById('pick-info-span');
+    const prevBtn = document.getElementById('pick-prev-btn');
+    const nextBtn = document.getElementById('pick-next-btn');
+    const slider  = document.getElementById('pick-slider');
+    if (infoEl)  infoEl.textContent = `${selPick + 1} / ${total}`;
+    if (prevBtn) prevBtn.disabled = selPick === 0;
+    if (nextBtn) nextBtn.disabled = selPick >= total - 1;
+    if (slider && document.activeElement !== slider) slider.value = selPick;
+  }
+
+  /* ── Render: booster header ──────────────────────────────────────────── */
+  function renderBoosterHeader() {
+    const picks = getPackPicks(selPlayer, selPack);
+    const pick  = picks[selPick];
+    const el    = document.getElementById('booster-header');
+    if (!pick) { el.innerHTML = '<span style="color:var(--muted);font-size:0.85rem">No picks found</span>'; return; }
+    const dir   = packDir(selPack);
+    const arrow = dir === 'left' ? '←' : '→';
+    el.innerHTML = `
+      <span class="booster-title">Pack ${selPack + 1}, Pick ${selPick + 1}</span>
+      <div class="booster-meta">
+        <span class="meta-badge player">${esc(players[selPlayer].userName)}</span>
+        <span class="meta-badge dir">${arrow} pass ${dir}</span>
+        <span class="meta-badge size">${pick.booster.length} cards</span>
+      </div>
+    `;
+  }
+
+  /* ── Render: booster grid ────────────────────────────────────────────── */
+  function renderBoosterGrid() {
+    const picks = getPackPicks(selPlayer, selPack);
+    const pick  = picks[selPick];
+    const el    = document.getElementById('booster-grid');
+    if (!pick) { el.innerHTML = ''; return; }
+
+    const pickedIdx = pick.pick[0];
+    el.innerHTML = pick.booster.map((cardId, i) => {
+      const card      = getCardInfo(cardId);
+      const isPicked  = (i === pickedIdx);
+      const rarCode   = RARITY_CODE[card.rarity] || '';
+      const tipType   = card.type ? '\n' + card.type : '';
+      const tipRarity = card.rarity ? '\n' + card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1) : '';
+      const tip       = `${card.name}${card.color ? ' (' + card.color + ')' : ''}${tipType}${tipRarity}`;
+      return `
+        <div class="card-item${isPicked ? ' is-picked' : ''}" title="${esc(tip)}">
+          <div class="card-img-wrap">
+            <div class="card-img-fallback">
+              <span>${esc(card.name)}</span>
+              ${card.color ? `<span class="fallback-color">${card.color}</span>` : ''}
+            </div>
+            ${card.imgUrl ? `<img class="card-img" src="${esc(card.imgUrl)}" alt="${esc(card.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+            ${isPicked ? '<div class="pick-badge">&#10003; Picked</div>' : ''}
+            ${rarCode ? `<div class="rarity-badge rarity-${esc(card.rarity)}">${rarCode}</div>` : ''}
+          </div>
+          <div class="card-label">
+            <span class="card-name-label">${esc(card.name)}</span>
+            ${card.color ? `<span class="color-dot dot-${esc(card.color)}"></span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── Render: draft pool ──────────────────────────────────────────────── */
+  function renderPool() {
+    const pool      = getPool(selPlayer, selPack, selPick);
+    const countEl   = document.getElementById('pool-count');
+    const gridEl    = document.getElementById('pool-grid');
+    const chevronEl = document.getElementById('pool-chevron');
+
+    countEl.textContent = `(${pool.length})`;
+    chevronEl.classList.toggle('open', poolOpen);
+
+    if (!poolOpen) { gridEl.hidden = true; return; }
+    gridEl.hidden = false;
+
+    gridEl.innerHTML = pool.map(cardId => {
+      const card = getCardInfo(cardId);
+      return `
+        <div class="pool-card${card.color ? ' color-' + card.color : ''}"
+             title="${esc(card.name)}${card.color ? ' (' + card.color + ')' : ''}">
+          <div class="pool-img-wrap">
+            <div class="pool-fallback">${esc(card.name)}</div>
+            ${card.imgUrl ? `<img class="pool-img" src="${esc(card.imgUrl)}" alt="${esc(card.name)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── State changes ───────────────────────────────────────────────────── */
+  function selectPlayer(idx) {
+    selPlayer = idx; selPack = 0; selPick = 0;
+    renderPlayers(); renderPackTabs(); renderPickNav();
+    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+  }
+
+  function selectPack(pack) {
+    selPack = pack; selPick = 0;
+    renderPackTabs(); renderPickNav();
+    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+  }
+
+  function selectPickFromSlider(pick) {
+    selPick = pick;
+    updatePickNavState();
+    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+  }
+
+  function selectPick(pick) {
+    selPick = pick;
+    updatePickNavState();
+    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+  }
+
+  function prevPick() { if (selPick > 0) selectPick(selPick - 1); }
+  function nextPick() {
+    const total = getPackPicks(selPlayer, selPack).length;
+    if (selPick < total - 1) selectPick(selPick + 1);
+  }
+
+  /* ── Load draft ──────────────────────────────────────────────────────── */
+  function loadDraft(json) {
+    draft   = json;
+    players = Object.values(json.users || {});
+    if (!players.length) { alert('No players found in draft log.'); return; }
+    selPlayer = 0; selPack = 0; selPick = 0;
+    document.getElementById('view-upload').hidden = true;
+    document.getElementById('view-draft').hidden  = false;
+    renderPlayers(); renderPackTabs(); renderPickNav();
+    renderBoosterHeader(); renderBoosterGrid(); renderPool();
+  }
+
+  /* ── File input ──────────────────────────────────────────────────────── */
+  function handleFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        loadDraft(JSON.parse(e.target.result));
+      } catch (err) {
+        alert('Could not parse file. Please provide a valid draft log JSON.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput  = document.getElementById('file-input');
+    const uploadBtn  = document.getElementById('upload-btn');
+    const dropZone   = document.getElementById('drop-zone');
+    const resetBtn   = document.getElementById('reset-btn');
+    const poolToggle = document.getElementById('pool-toggle');
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    dropZone.addEventListener('click', e => { if (e.target !== uploadBtn) uploadBtn.click(); });
+
+    resetBtn.addEventListener('click', () => {
+      draft = null; players = [];
+      document.getElementById('view-draft').hidden  = true;
+      document.getElementById('view-upload').hidden = false;
+      fileInput.value = '';
+    });
+
+    poolToggle.addEventListener('click', () => { poolOpen = !poolOpen; renderPool(); });
+
+    document.addEventListener('keydown', e => {
+      if (!draft) return;
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextPick(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPick(); }
+    });
+  });
+</script>
+</body>
+</html>
