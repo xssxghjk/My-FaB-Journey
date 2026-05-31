@@ -527,12 +527,12 @@
       </div>
       <h2 class="upload-title">Draft Visualizer</h2>
       <p class="upload-desc">Load an OmniDraft log file to step through every<br>pick — player by player, pack by pack.</p>
-      <button class="upload-btn" id="upload-btn">
+      <label class="upload-btn" id="upload-btn" for="file-input">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1v8M4 6l3-3 3 3M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Choose Draft Log
-      </button>
+      </label>
       <input type="file" id="file-input" accept=".json,.txt" style="display:none">
     </div>
   </div>
@@ -1092,7 +1092,6 @@
     const resetBtn   = document.getElementById('reset-btn');
     const poolToggle = document.getElementById('pool-toggle');
 
-    uploadBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
@@ -1101,7 +1100,7 @@
       e.preventDefault(); dropZone.classList.remove('drag-over');
       if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('click', e => { if (!uploadBtn.contains(e.target)) uploadBtn.click(); });
+    dropZone.addEventListener('click', e => { if (!uploadBtn.contains(e.target)) fileInput.click(); });
 
     resetBtn.addEventListener('click', () => {
       draft = null; players = [];
