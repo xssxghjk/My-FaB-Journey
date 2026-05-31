@@ -47,7 +47,7 @@
 
     /* ── Upload view ────────────────────────────────────────────────────── */
     .upload-wrap {
-      display: flex; align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       min-height: calc(100vh - 120px); padding: 2rem;
     }
 
@@ -86,6 +86,54 @@
       letter-spacing: 0.04em; transition: background 0.15s, border-color 0.15s;
     }
     .upload-btn:hover { background: rgba(196,134,74,0.14); border-color: rgba(196,134,74,0.5); }
+
+    /* ── Saved drafts list ──────────────────────────────────────────────── */
+    .saved-drafts-section {
+      width: 100%; max-width: 480px; margin-top: 1.5rem;
+    }
+
+    .saved-drafts-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .saved-draft-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .saved-draft-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .saved-draft-info { flex: 1; min-width: 0; }
+
+    .saved-draft-name {
+      font-size: 0.875rem; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .saved-draft-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+
+    .saved-draft-load-btn {
+      padding: 0.28rem 0.75rem; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid rgba(196,134,74,0.3);
+      color: var(--accent); border-radius: 2px; cursor: pointer;
+      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    .saved-draft-load-btn:hover { background: rgba(196,134,74,0.16); }
+
+    .saved-draft-del-btn {
+      padding: 0.28rem 0.5rem; flex-shrink: 0;
+      background: transparent; border: 1px solid rgba(255,255,255,0.07);
+      color: var(--muted); border-radius: 2px; cursor: pointer;
+      font-size: 0.75rem; line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .saved-draft-del-btn:hover { color: var(--red-c); border-color: rgba(224,80,64,0.4); }
 
     /* ── Draft layout ───────────────────────────────────────────────────── */
     .draft-layout { display: flex; }
@@ -434,6 +482,11 @@
       <input type="file" id="file-input" accept=".json,.txt" style="display:none">
     </div>
   </div>
+
+  <div id="saved-drafts-section" class="saved-drafts-section" hidden>
+    <div class="saved-drafts-title">Saved Drafts</div>
+    <div class="saved-draft-list" id="saved-draft-list"></div>
+  </div>
 </div>
 
 <!-- ── Draft view ──────────────────────────────────────────────────────────── -->
@@ -501,6 +554,59 @@
     return String(s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ── Draft storage ───────────────────────────────────────────────────── */
+  const DRAFTS_KEY = 'fab_drafts_v1';
+
+  function getSavedDrafts() {
+    try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveDraftToStorage(json, name) {
+    const drafts = getSavedDrafts();
+    const id = Date.now().toString();
+    drafts.unshift({ id, name, savedAt: new Date().toISOString(), data: json });
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+    } catch {
+      drafts.pop();
+      try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts)); } catch {}
+    }
+    renderSavedDrafts();
+  }
+
+  function deleteSavedDraft(id) {
+    const drafts = getSavedDrafts().filter(d => d.id !== id);
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+    renderSavedDrafts();
+  }
+
+  function loadSavedDraft(id) {
+    const d = getSavedDrafts().find(d => d.id === id);
+    if (d) loadDraft(d.data);
+  }
+
+  function renderSavedDrafts() {
+    const drafts = getSavedDrafts();
+    const section = document.getElementById('saved-drafts-section');
+    const list = document.getElementById('saved-draft-list');
+    if (!drafts.length) { section.hidden = true; return; }
+    section.hidden = false;
+    list.innerHTML = drafts.map(d => {
+      const date = new Date(d.savedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return `
+        <div class="saved-draft-item">
+          <div class="saved-draft-info">
+            <div class="saved-draft-name">${esc(d.name)}</div>
+            <div class="saved-draft-date">${date}</div>
+          </div>
+          <button class="saved-draft-load-btn" onclick="loadSavedDraft('${esc(d.id)}')">Load</button>
+          <button class="saved-draft-del-btn" onclick="deleteSavedDraft('${esc(d.id)}')" title="Remove from saved drafts">✕</button>
+        </div>
+      `;
+    }).join('');
   }
 
   /* ── State ───────────────────────────────────────────────────────────── */
@@ -810,7 +916,10 @@
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        loadDraft(JSON.parse(e.target.result));
+        const json = JSON.parse(e.target.result);
+        const name = file.name.replace(/\.[^.]+$/, '') || 'Draft';
+        loadDraft(json);
+        saveDraftToStorage(json, name);
       } catch (err) {
         alert('Could not parse file. Please provide a valid draft log JSON.');
       }
@@ -819,6 +928,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    renderSavedDrafts();
+
     const fileInput  = document.getElementById('file-input');
     const uploadBtn  = document.getElementById('upload-btn');
     const dropZone   = document.getElementById('drop-zone');
