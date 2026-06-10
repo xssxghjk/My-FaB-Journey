@@ -1884,6 +1884,27 @@
     .sim-dr-avg-head { min-width: 52px; text-align: right; }
     .sim-dr-pct-head { min-width: 52px; text-align: right; }
     .sim-dr-pct { min-width: 52px; text-align: right; font-size: 0.68rem; color: var(--muted); }
+    .sim-dr-color-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+      margin-right: 5px; vertical-align: middle; flex-shrink: 0;
+    }
+    .sim-dr-color-dot.red    { background: var(--red-c); }
+    .sim-dr-color-dot.yellow { background: var(--yellow-c); }
+    .sim-dr-color-dot.blue   { background: var(--blue-c); }
+    .sim-dr-section-sep { height: 1px; background: var(--border); margin: 0.3rem 0; }
+    .sim-turns-avg-bar {
+      display: none; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.75rem; margin-bottom: 0.5rem;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 2px;
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .sim-turns-avg-bar .sim-turns-avg-num { color: var(--accent); font-weight: 700; font-size: 0.88rem; }
+    .sim-turn-val {
+      width: 56px; padding: 0.22rem 0.4rem; flex-shrink: 0; align-self: center;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+      color: var(--text); font-size: 0.72rem; text-align: right;
+    }
+    .sim-turn-val:focus { outline: none; border-color: var(--accent); }
     .sim-dr-detail-btn {
       background: transparent; border: 1px solid var(--border-2); border-radius: 2px;
       color: var(--muted); font-size: 0.56rem; letter-spacing: 0.07em; text-transform: uppercase;
@@ -3688,6 +3709,15 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     }
     const typeEntries = Object.entries(typeCts).sort((a, b) => b[1] - a[1]);
 
+    const costCts = {};
+    for (const { entry, card } of nonArenaPairs) {
+      if (!card || card.cost == null) continue;
+      costCts[card.cost] = (costCts[card.cost] || 0) + entry.qty;
+    }
+    const costEntries = Object.entries(costCts)
+      .map(([c, n]) => [parseInt(c, 10), n])
+      .sort((a, b) => a[0] - b[0]);
+
     simDrDetails = localStorage.getItem('fab-sim-dr-details') === '1';
 
     function drTableContentHtml(hs2) {
@@ -3696,6 +3726,23 @@ Header lines, section labels, and footers are ignored automatically."></textarea
         ? cols.map(k => `<span class="sim-dr-pct-head">${k}×</span>`).join('')
         : '';
       const headerRow = `<div class="sim-dr-header-row"><span class="sim-dr-type">type</span><span class="sim-dr-count">count</span><span class="sim-dr-avg-head">avg/hand</span>${pctHeaders}</div>`;
+
+      const colorDefs = [
+        { key: 'red',    label: 'Red',    count: red },
+        { key: 'yellow', label: 'Yellow', count: yellow },
+        { key: 'blue',   label: 'Blue',   count: blue },
+      ];
+      const colorRows = colorDefs.filter(({ count: c }) => c > 0).map(({ key, label, count: c }) => {
+        const avg2 = deckSize > 0 ? (hs2 * c / deckSize).toFixed(2) : '—';
+        const pctCells = simDrDetails
+          ? cols.map(k => {
+              const p = hypergeomPMF(deckSize, c, hs2, k);
+              return `<span class="sim-dr-pct">${(p * 100).toFixed(1)}%</span>`;
+            }).join('')
+          : '';
+        return `<div class="sim-dr-row sim-dr-row--clickable" data-filter-type="sim-color" data-filter-key="${key}" tabindex="0" role="button"><span class="sim-dr-type"><span class="sim-dr-color-dot ${key}"></span>${label}</span><span class="sim-dr-count">${c} cards</span><span class="sim-dr-avg">${avg2}</span>${pctCells}</div>`;
+      }).join('');
+
       const rows = typeEntries.map(([t, c]) => {
         const avg2 = deckSize > 0 ? (hs2 * c / deckSize).toFixed(2) : '—';
         const pctCells = simDrDetails
@@ -3706,7 +3753,21 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           : '';
         return `<div class="sim-dr-row sim-dr-row--clickable" data-filter-type="sim-type" data-filter-key="${esc(t)}" tabindex="0" role="button"><span class="sim-dr-type">${esc(t)}</span><span class="sim-dr-count">${c} cards</span><span class="sim-dr-avg">${avg2}</span>${pctCells}</div>`;
       }).join('');
-      return headerRow + `<div class="sim-dr-table">${rows}</div>`;
+
+      const costRows = costEntries.map(([cost, c]) => {
+        const avg2 = deckSize > 0 ? (hs2 * c / deckSize).toFixed(2) : '—';
+        const pctCells = simDrDetails
+          ? cols.map(k => {
+              const p = hypergeomPMF(deckSize, c, hs2, k);
+              return `<span class="sim-dr-pct">${(p * 100).toFixed(1)}%</span>`;
+            }).join('')
+          : '';
+        return `<div class="sim-dr-row sim-dr-row--clickable" data-filter-type="sim-cost" data-filter-key="${cost}" tabindex="0" role="button"><span class="sim-dr-type">Cost ${cost}</span><span class="sim-dr-count">${c} cards</span><span class="sim-dr-avg">${avg2}</span>${pctCells}</div>`;
+      }).join('');
+
+      const sep1 = colorRows && (costRows || rows) ? '<div class="sim-dr-section-sep"></div>' : '';
+      const sep2 = costRows && rows ? '<div class="sim-dr-section-sep"></div>' : '';
+      return headerRow + `<div class="sim-dr-table">${colorRows}${sep1}${costRows}${sep2}${rows}</div>`;
     }
 
     el.innerHTML = `
@@ -3752,6 +3813,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
             <button class="btn-primary" id="sim-btn-turns">Run Simulation</button>
             <button class="btn-secondary" id="sim-btn-turns-clear">Clear</button>
           </div>
+          <div class="sim-turns-avg-bar" id="sim-turns-avg-bar">Average <span class="sim-turns-avg-num" id="sim-turns-avg-val">—</span></div>
           <div class="sim-turns-list" id="sim-turns-list"></div>
         </div>
       </div>
@@ -3862,16 +3924,32 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           return `<div class="sim-tc-placeholder ${c.color}" title="${esc(c.name)}">` +
             `<span class="sim-tc-letter">${c.pitch}</span>` + badge + `</div>`;
         }).join('');
-        row.innerHTML = `<div class="sim-turn-num">T${turn}</div><div class="sim-turn-cards">${cardsHtml}</div>`;
+        row.innerHTML = `<div class="sim-turn-num">T${turn}</div><div class="sim-turn-cards">${cardsHtml}</div><input class="sim-turn-val" type="number" placeholder="—" min="0" step="1" aria-label="Turn ${turn} value" />`;
         list.appendChild(row);
       }
       list.style.display = 'flex';
+    });
+
+    function updateTurnsAvg() {
+      const inputs = document.querySelectorAll('#sim-turns-list .sim-turn-val');
+      let sum = 0, count = 0;
+      inputs.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) { sum += v; count++; } });
+      const bar = document.getElementById('sim-turns-avg-bar');
+      const val = document.getElementById('sim-turns-avg-val');
+      if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+      if (val) val.textContent = count > 0 ? (sum / count).toFixed(2) : '—';
+    }
+
+    document.getElementById('sim-turns-list').addEventListener('input', function (e) {
+      if (e.target.classList.contains('sim-turn-val')) updateTurnsAvg();
     });
 
     document.getElementById('sim-btn-turns-clear').addEventListener('click', function () {
       const list = document.getElementById('sim-turns-list');
       list.innerHTML = '';
       list.style.display = 'none';
+      const bar = document.getElementById('sim-turns-avg-bar');
+      if (bar) bar.style.display = 'none';
     });
 
   }
@@ -3941,6 +4019,15 @@ Header lines, section labels, and footers are ignored automatically."></textarea
         pairs = currentAnalysisPairs.filter(p => p.card && !p.card.types.some(t => ARENA_TYPES.includes(t)) && p.card.types.includes(filterKey));
       }
       title = filterKey;
+    } else if (filterType === 'sim-color') {
+      const ARENA_TYPES = ['Equipment', 'Weapon', 'Off-Hand'];
+      pairs = currentAnalysisPairs.filter(p => p.card && !p.card.types.some(t => ARENA_TYPES.includes(t)) && p.card.color === filterKey);
+      title = filterKey.charAt(0).toUpperCase() + filterKey.slice(1);
+    } else if (filterType === 'sim-cost') {
+      const ARENA_TYPES = ['Equipment', 'Weapon', 'Off-Hand'];
+      const costVal = parseInt(filterKey, 10);
+      pairs = currentAnalysisPairs.filter(p => p.card && !p.card.types.some(t => ARENA_TYPES.includes(t)) && p.card.cost === costVal);
+      title = `Cost ${costVal}`;
     } else {
       return;
     }
