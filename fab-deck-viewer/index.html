@@ -1884,6 +1884,14 @@
     .sim-dr-avg-head { min-width: 52px; text-align: right; }
     .sim-dr-pct-head { min-width: 52px; text-align: right; }
     .sim-dr-pct { min-width: 52px; text-align: right; font-size: 0.68rem; color: var(--muted); }
+    .sim-dr-color-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+      margin-right: 5px; vertical-align: middle; flex-shrink: 0;
+    }
+    .sim-dr-color-dot.red    { background: var(--red-c); }
+    .sim-dr-color-dot.yellow { background: var(--yellow-c); }
+    .sim-dr-color-dot.blue   { background: var(--blue-c); }
+    .sim-dr-section-sep { height: 1px; background: var(--border); margin: 0.3rem 0; }
     .sim-dr-detail-btn {
       background: transparent; border: 1px solid var(--border-2); border-radius: 2px;
       color: var(--muted); font-size: 0.56rem; letter-spacing: 0.07em; text-transform: uppercase;
@@ -3696,6 +3704,23 @@ Header lines, section labels, and footers are ignored automatically."></textarea
         ? cols.map(k => `<span class="sim-dr-pct-head">${k}×</span>`).join('')
         : '';
       const headerRow = `<div class="sim-dr-header-row"><span class="sim-dr-type">type</span><span class="sim-dr-count">count</span><span class="sim-dr-avg-head">avg/hand</span>${pctHeaders}</div>`;
+
+      const colorDefs = [
+        { key: 'red',    label: 'Red',    count: red },
+        { key: 'yellow', label: 'Yellow', count: yellow },
+        { key: 'blue',   label: 'Blue',   count: blue },
+      ];
+      const colorRows = colorDefs.filter(({ count: c }) => c > 0).map(({ key, label, count: c }) => {
+        const avg2 = deckSize > 0 ? (hs2 * c / deckSize).toFixed(2) : '—';
+        const pctCells = simDrDetails
+          ? cols.map(k => {
+              const p = hypergeomPMF(deckSize, c, hs2, k);
+              return `<span class="sim-dr-pct">${(p * 100).toFixed(1)}%</span>`;
+            }).join('')
+          : '';
+        return `<div class="sim-dr-row sim-dr-row--clickable" data-filter-type="sim-color" data-filter-key="${key}" tabindex="0" role="button"><span class="sim-dr-type"><span class="sim-dr-color-dot ${key}"></span>${label}</span><span class="sim-dr-count">${c} cards</span><span class="sim-dr-avg">${avg2}</span>${pctCells}</div>`;
+      }).join('');
+
       const rows = typeEntries.map(([t, c]) => {
         const avg2 = deckSize > 0 ? (hs2 * c / deckSize).toFixed(2) : '—';
         const pctCells = simDrDetails
@@ -3706,7 +3731,9 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           : '';
         return `<div class="sim-dr-row sim-dr-row--clickable" data-filter-type="sim-type" data-filter-key="${esc(t)}" tabindex="0" role="button"><span class="sim-dr-type">${esc(t)}</span><span class="sim-dr-count">${c} cards</span><span class="sim-dr-avg">${avg2}</span>${pctCells}</div>`;
       }).join('');
-      return headerRow + `<div class="sim-dr-table">${rows}</div>`;
+
+      const sep = colorRows && rows ? '<div class="sim-dr-section-sep"></div>' : '';
+      return headerRow + `<div class="sim-dr-table">${colorRows}${sep}${rows}</div>`;
     }
 
     el.innerHTML = `
@@ -3941,6 +3968,10 @@ Header lines, section labels, and footers are ignored automatically."></textarea
         pairs = currentAnalysisPairs.filter(p => p.card && !p.card.types.some(t => ARENA_TYPES.includes(t)) && p.card.types.includes(filterKey));
       }
       title = filterKey;
+    } else if (filterType === 'sim-color') {
+      const ARENA_TYPES = ['Equipment', 'Weapon', 'Off-Hand'];
+      pairs = currentAnalysisPairs.filter(p => p.card && !p.card.types.some(t => ARENA_TYPES.includes(t)) && p.card.color === filterKey);
+      title = filterKey.charAt(0).toUpperCase() + filterKey.slice(1);
     } else {
       return;
     }
