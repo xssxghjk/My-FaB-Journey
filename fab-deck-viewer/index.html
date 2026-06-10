@@ -1900,7 +1900,7 @@
     }
     .sim-turns-avg-bar .sim-turns-avg-num { color: var(--accent); font-weight: 700; font-size: 0.88rem; }
     .sim-turn-val {
-      width: 56px; padding: 0.22rem 0.4rem; flex-shrink: 0; align-self: center;
+      width: 56px; padding: 0.22rem 0.4rem;
       background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
       color: var(--text); font-size: 0.72rem; text-align: right;
     }
@@ -1923,10 +1923,11 @@
       max-height: 480px; overflow-y: auto; margin-top: 0.75rem;
     }
     .sim-turn-row {
-      display: flex; align-items: flex-start; gap: 0.6rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
       padding: 0.5rem 0.65rem; background: var(--surface-2);
       border: 1px solid var(--border); border-radius: 2px; font-size: 0.78rem;
     }
+    .sim-turn-row-top { display: flex; align-items: flex-start; gap: 0.6rem; }
     .sim-turn-num { font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); min-width: 32px; padding-top: 0.35rem; }
     .sim-turn-cards { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; align-items: flex-end; }
     .sim-tc-wrap {
@@ -3924,7 +3925,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           return `<div class="sim-tc-placeholder ${c.color}" title="${esc(c.name)}">` +
             `<span class="sim-tc-letter">${c.pitch}</span>` + badge + `</div>`;
         }).join('');
-        row.innerHTML = `<div class="sim-turn-num">T${turn}</div><div class="sim-turn-cards">${cardsHtml}</div><input class="sim-turn-val" type="number" placeholder="—" min="0" step="1" aria-label="Turn ${turn} value" />`;
+        row.innerHTML = `<div class="sim-turn-row-top"><div class="sim-turn-num">T${turn}</div><div class="sim-turn-cards">${cardsHtml}</div></div><input class="sim-turn-val" type="number" placeholder="—" min="0" step="1" aria-label="Turn ${turn} value" />`;
         list.appendChild(row);
       }
       list.style.display = 'flex';
