@@ -1957,6 +1957,11 @@
     .sim-tc-placeholder.blue   { background: rgba(90,180,204,0.08); border-color: var(--blue-c);   color: var(--blue-c); }
     .sim-tc-letter { font-size: 0.9rem; font-weight: 700; }
     .sim-no-pitch { padding: 2rem; text-align: center; font-style: italic; color: var(--muted); font-size: 0.85rem; }
+    .sim-ignore-t0-label {
+      display: flex; align-items: center; gap: 0.35rem;
+      font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto;
+    }
+    .sim-ignore-t0-label input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
 
     /* ── Memory tab ── */
     .mem-setup-card {
@@ -3813,6 +3818,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           <div class="btn-row">
             <button class="btn-primary" id="sim-btn-turns">Run Simulation</button>
             <button class="btn-secondary" id="sim-btn-turns-clear">Clear</button>
+            <label class="sim-ignore-t0-label"><input type="checkbox" id="sim-ignore-turn0" /> Ignore turn 0</label>
           </div>
           <div class="sim-turns-avg-bar" id="sim-turns-avg-bar">Average <span class="sim-turns-avg-num" id="sim-turns-avg-val">—</span></div>
           <div class="sim-turns-list" id="sim-turns-list"></div>
@@ -3932,9 +3938,11 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     });
 
     function updateTurnsAvg() {
-      const inputs = document.querySelectorAll('#sim-turns-list .sim-turn-val');
+      const inputs = Array.from(document.querySelectorAll('#sim-turns-list .sim-turn-val'));
+      const ignoreTurn0 = document.getElementById('sim-ignore-turn0')?.checked;
+      const relevant = ignoreTurn0 ? inputs.slice(1) : inputs;
       let sum = 0, count = 0;
-      inputs.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) { sum += v; count++; } });
+      relevant.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) { sum += v; count++; } });
       const bar = document.getElementById('sim-turns-avg-bar');
       const val = document.getElementById('sim-turns-avg-val');
       if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
@@ -3944,6 +3952,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     document.getElementById('sim-turns-list').addEventListener('input', function (e) {
       if (e.target.classList.contains('sim-turn-val')) updateTurnsAvg();
     });
+    document.getElementById('sim-ignore-turn0').addEventListener('change', updateTurnsAvg);
 
     document.getElementById('sim-btn-turns-clear').addEventListener('click', function () {
       const list = document.getElementById('sim-turns-list');
