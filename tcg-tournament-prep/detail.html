@@ -19,6 +19,7 @@
       --t2: #d4924a; --t2-bg: rgba(212,146,74,0.08); --t2-border: rgba(212,146,74,0.22);
       --t3: #5ab4cc; --t3-bg: rgba(90,180,204,0.08); --t3-border: rgba(90,180,204,0.22);
       --t4: #a07ae8; --t4-bg: rgba(160,122,232,0.08); --t4-border: rgba(160,122,232,0.22);
+      --red-c: #e05040; --yellow-c: #d4924a; --blue-c: #5ab4cc;
     }
     html { scroll-behavior: smooth; }
     body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; -webkit-font-smoothing: antialiased; line-height: 1.6; }
@@ -95,7 +96,73 @@
     .tldraw-open-link:hover { border-color: var(--muted2); color: var(--text); }
     .tldraw-iframe-wrapper { position: relative; overflow: hidden; height: 72vh; min-height: 480px; border-bottom: 1px solid var(--border); background: var(--surface); }
     .tldraw-iframe { position: absolute; top: -52px; left: 0; width: 100%; height: calc(100% + 116px); border: none; display: block; }
-    @media (max-width: 600px) { .prep-title { font-size: 1.4rem; } .prep-section { padding: 0.85rem 1rem; } .page-header { padding: 1.75rem 1.25rem 1.5rem; } .format-card-header { padding: 0.85rem 1rem; } .date-content { padding: 0.7rem 0.85rem; } }
+
+    /* ── Borrow tracker ── */
+    .borrow-tracker { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; border-left: 2px solid var(--accent); margin-bottom: 1.25rem; }
+    .borrow-tracker-header { padding: 0.9rem 1.4rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .borrow-tracker-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 1.1rem; font-weight: 700; }
+    .borrow-tracker-sub { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
+    .borrow-cols { display: grid; grid-template-columns: 1fr 1fr; }
+    .borrow-col { padding: 1rem 1.4rem; }
+    .borrow-col + .borrow-col { border-left: 1px solid var(--border); }
+    .borrow-col-header { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .borrow-col-title { font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+    .borrow-add-btn { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; padding: 0.28rem 0.7rem; border-radius: 2px; border: 1px solid var(--accent-border); background: var(--accent-bg); color: var(--accent); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .borrow-add-btn:hover { background: rgba(196,134,74,0.16); border-color: var(--accent); }
+    .borrow-groups { display: flex; flex-direction: column; gap: 0.65rem; }
+    .borrow-empty { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.8rem; font-style: italic; color: var(--muted); padding: 0.5rem 0; }
+    .borrow-group { border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+    .borrow-group-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.7rem; background: var(--surface2); border-bottom: 1px solid var(--border); }
+    .borrow-group-person { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .borrow-group-count { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.7rem; color: var(--muted); margin-left: auto; }
+    .borrow-group-remove { background: none; border: none; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer; padding: 0.1rem 0.3rem; transition: color 0.15s; }
+    .borrow-group-remove:hover { color: var(--red-c); }
+    .borrow-card-rows { display: flex; flex-direction: column; }
+    .borrow-card-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.7rem; border-bottom: 1px solid var(--border); }
+    .borrow-card-row:last-child { border-bottom: none; }
+    .borrow-card-img { width: 30px; height: 42px; object-fit: cover; object-position: top center; border-radius: 2px; background: var(--border); flex-shrink: 0; display: block; }
+    .borrow-card-img-placeholder { width: 30px; height: 42px; flex-shrink: 0; background: var(--border); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.6rem; }
+    .borrow-card-info { min-width: 0; flex: 1; }
+    .borrow-card-name { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .borrow-pitch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .borrow-pitch-dot.red { background: var(--red-c); } .borrow-pitch-dot.yellow { background: var(--yellow-c); } .borrow-pitch-dot.blue { background: var(--blue-c); }
+    .borrow-card-qty { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; color: var(--muted2); flex-shrink: 0; }
+    .borrow-card-remove { background: none; border: none; color: var(--muted); font-size: 0.95rem; line-height: 1; cursor: pointer; padding: 0.1rem 0.3rem; flex-shrink: 0; transition: color 0.15s; }
+    .borrow-card-remove:hover { color: var(--red-c); }
+
+    /* ── Borrow tracker: add-card modal ── */
+    .borrow-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .borrow-modal { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--border2); border-radius: 3px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .borrow-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .borrow-modal-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.05rem; }
+    .borrow-modal-close { background: none; border: none; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0.1rem 0.3rem; }
+    .borrow-modal-close:hover { color: var(--text); }
+    .borrow-modal-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
+    .borrow-field label { display: block; font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .borrow-field input[type="text"], .borrow-field input[type="number"] { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 2px; color: var(--text); font-family: 'DM Serif Text', Georgia, serif; font-size: 0.88rem; padding: 0.5rem 0.65rem; }
+    .borrow-field input:focus { outline: none; border-color: var(--accent); }
+    .borrow-modal-err { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; color: var(--red-c); display: none; }
+    .borrow-modal-hint { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; font-style: italic; color: var(--muted); margin-top: 0.3rem; }
+    .borrow-modal-actions { display: flex; gap: 0.5rem; padding: 0 1.1rem 1.1rem; }
+    .borrow-btn-primary, .borrow-btn-secondary { flex: 1; font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.8rem; padding: 0.55rem 1rem; border-radius: 2px; cursor: pointer; text-align: center; }
+    .borrow-btn-primary { background: var(--accent); border: 1px solid rgba(196,134,74,0.5); color: #1c1814; font-weight: 700; }
+    .borrow-btn-primary:hover { background: #d59860; }
+    .borrow-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .borrow-btn-secondary { background: transparent; border: 1px solid var(--border2); color: var(--muted2); }
+    .borrow-btn-secondary:hover { border-color: var(--muted2); color: var(--text); }
+
+    .card-ac-wrap { position: relative; }
+    .card-ac-list { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface2); border: 1px solid var(--border2); border-radius: 3px; max-height: 240px; overflow-y: auto; z-index: 1100; box-shadow: 0 8px 28px rgba(0,0,0,0.6); }
+    .card-ac-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.6rem; cursor: pointer; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem; color: var(--text); border-bottom: 1px solid var(--border); }
+    .card-ac-item:last-child { border-bottom: none; }
+    .card-ac-item:hover, .card-ac-item[aria-selected="true"] { background: var(--accent-dim); color: var(--accent); }
+    .card-ac-img { width: 32px; height: 45px; object-fit: cover; object-position: top center; border-radius: 2px; background: var(--border); flex-shrink: 0; display: block; }
+    .card-ac-img-placeholder { width: 32px; height: 45px; flex-shrink: 0; background: var(--border); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.6rem; }
+    .card-ac-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .card-ac-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.35rem; }
+    .card-ac-meta { font-size: 0.7rem; color: var(--muted2); }
+
+    @media (max-width: 600px) { .prep-title { font-size: 1.4rem; } .prep-section { padding: 0.85rem 1rem; } .page-header { padding: 1.75rem 1.25rem 1.5rem; } .format-card-header { padding: 0.85rem 1rem; } .date-content { padding: 0.7rem 0.85rem; } .borrow-cols { grid-template-columns: 1fr; } .borrow-col + .borrow-col { border-left: none; border-top: 1px solid var(--border); } }
     footer { padding: 1.5rem 2rem; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; color: var(--muted-2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--accent); }
@@ -104,6 +171,39 @@
 <body>
 
   <div id="page-content"></div>
+
+  <div id="borrow-modal-backdrop" class="borrow-modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-label="Add borrowed card">
+    <div class="borrow-modal">
+      <div class="borrow-modal-header">
+        <span class="borrow-modal-title" id="borrow-modal-title">Add Card</span>
+        <button class="borrow-modal-close" id="borrow-modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="borrow-modal-body">
+        <div class="borrow-field">
+          <label for="borrow-person-input" id="borrow-person-label">Name</label>
+          <input type="text" id="borrow-person-input" list="borrow-person-datalist" placeholder="Person's name" autocomplete="off" maxlength="60" />
+          <datalist id="borrow-person-datalist"></datalist>
+        </div>
+        <div class="borrow-field">
+          <label>Card</label>
+          <div class="card-ac-wrap">
+            <input type="text" id="borrow-card-input" placeholder="Search by name…" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="borrow-card-ac-list" />
+            <div id="borrow-card-ac-list" class="card-ac-list" role="listbox" style="display:none;"></div>
+          </div>
+          <div class="borrow-modal-hint" id="borrow-card-loading" style="display:none">Loading card database…</div>
+        </div>
+        <div class="borrow-field">
+          <label for="borrow-qty-input">Quantity</label>
+          <input type="number" id="borrow-qty-input" min="1" max="99" value="1" />
+        </div>
+        <div class="borrow-modal-err" id="borrow-modal-err"></div>
+      </div>
+      <div class="borrow-modal-actions">
+        <button class="borrow-btn-primary" id="borrow-modal-save">Add Card</button>
+        <button class="borrow-btn-secondary" id="borrow-modal-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <span id="page-version" style="opacity:0.65"></span>
@@ -150,6 +250,324 @@
         </div>`;
     }
 
+    /* ── Borrow tracker ──────────────────────────────────────────────── */
+    const BORROW_DB_URL = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/main/json/english/card.json';
+    const BORROW_STORAGE_KEY = 'fab_borrow_tracker_v1';
+    const PITCH_LABEL = { red: 'Red · 1', yellow: 'Yellow · 2', blue: 'Blue · 3' };
+    let borrowDb = null;
+    let borrowDbLoading = null;
+    let borrowCurrentDirection = null;
+    let borrowSelectedEntry = null;
+
+    function loadBorrowStore() {
+      try { return JSON.parse(localStorage.getItem(BORROW_STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveBorrowStore(store) {
+      localStorage.setItem(BORROW_STORAGE_KEY, JSON.stringify(store));
+    }
+    function getBorrowEventData(store, prepId) {
+      if (!store[prepId]) store[prepId] = { borrowing: [], lending: [] };
+      if (!store[prepId].borrowing) store[prepId].borrowing = [];
+      if (!store[prepId].lending) store[prepId].lending = [];
+      return store[prepId];
+    }
+    function makeId() {
+      return (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    }
+
+    async function ensureBorrowDb() {
+      if (borrowDb) return borrowDb;
+      if (borrowDbLoading) return borrowDbLoading;
+      borrowDbLoading = (async () => {
+        const resp = await fetch(BORROW_DB_URL);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching card database`);
+        const cards = await resp.json();
+        const map = new Map();
+        for (const card of cards) {
+          const printing = card.printings && card.printings.length ? card.printings[0] : null;
+          const imgUrl = printing ? (printing.image_url || null) : null;
+          const pitchNum = card.pitch !== '' ? parseInt(card.pitch, 10) : null;
+          const entry = {
+            name: card.name,
+            pitch: isNaN(pitchNum) ? null : pitchNum,
+            color: (card.color || '').toLowerCase(),
+            types: Array.isArray(card.types) ? card.types : [],
+            imgUrl,
+          };
+          const nameLow = card.name.toLowerCase();
+          if (entry.color) map.set(`${nameLow}_${entry.color}`, entry);
+          if (!map.has(nameLow)) map.set(nameLow, entry);
+        }
+        borrowDb = map;
+        return borrowDb;
+      })();
+      return borrowDbLoading;
+    }
+
+    function getAllBorrowCardVariants() {
+      if (!borrowDb) return [];
+      const seen = new Set();
+      const variants = [];
+      for (const entry of borrowDb.values()) {
+        const key = entry.name.toLowerCase() + '|' + (entry.color || '');
+        if (!seen.has(key)) { seen.add(key); variants.push(entry); }
+      }
+      return variants;
+    }
+
+    function renderBorrowTrackerSection(prepId) {
+      return `
+        <section class="borrow-tracker" id="borrow-tracker" data-prep-id="${esc(prepId)}">
+          <div class="borrow-tracker-header">
+            <div class="borrow-tracker-title">Borrow Tracker</div>
+            <div class="borrow-tracker-sub">Track cards you're borrowing from others, and cards you're lending out, for this event.</div>
+          </div>
+          <div class="borrow-cols">
+            <div class="borrow-col" data-direction="borrowing">
+              <div class="borrow-col-header"><span class="borrow-col-title">Borrowing</span><button class="borrow-add-btn" data-direction="borrowing">+ Add Card</button></div>
+              <div class="borrow-groups" id="borrow-groups-borrowing">${renderBorrowGroupsHtml(prepId, 'borrowing')}</div>
+            </div>
+            <div class="borrow-col" data-direction="lending">
+              <div class="borrow-col-header"><span class="borrow-col-title">Lending</span><button class="borrow-add-btn" data-direction="lending">+ Add Card</button></div>
+              <div class="borrow-groups" id="borrow-groups-lending">${renderBorrowGroupsHtml(prepId, 'lending')}</div>
+            </div>
+          </div>
+        </section>`;
+    }
+
+    function renderBorrowCardRow(card, direction, groupId) {
+      const dot = card.color && PITCH_LABEL[card.color] ? `<span class="borrow-pitch-dot ${card.color}" title="${esc(PITCH_LABEL[card.color])}"></span>` : '';
+      const imgEl = card.imgUrl
+        ? `<img class="borrow-card-img" src="${esc(card.imgUrl)}" alt="" loading="lazy" />`
+        : `<div class="borrow-card-img-placeholder">?</div>`;
+      return `
+        <div class="borrow-card-row">
+          ${imgEl}
+          <div class="borrow-card-info"><span class="borrow-card-name">${dot}${esc(card.name)}</span></div>
+          <span class="borrow-card-qty">×${card.qty}</span>
+          <button class="borrow-card-remove" data-action="remove-card" data-direction="${direction}" data-group="${esc(groupId)}" data-card="${esc(card.id)}" title="Remove card" aria-label="Remove ${esc(card.name)}">&times;</button>
+        </div>`;
+    }
+
+    function renderBorrowGroupsHtml(prepId, direction) {
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      const groups = [...data[direction]].sort((a, b) => a.person.localeCompare(b.person));
+      if (!groups.length) {
+        return `<div class="borrow-empty">No cards ${direction === 'borrowing' ? 'borrowed' : 'lent out'} yet.</div>`;
+      }
+      return groups.map(group => {
+        const totalQty = group.cards.reduce((s, c) => s + c.qty, 0);
+        const rowsHtml = group.cards.map(c => renderBorrowCardRow(c, direction, group.id)).join('');
+        return `
+          <div class="borrow-group" data-group-id="${esc(group.id)}">
+            <div class="borrow-group-header">
+              <span class="borrow-group-person">${esc(group.person)}</span>
+              <span class="borrow-group-count">${totalQty} card${totalQty === 1 ? '' : 's'}</span>
+              <button class="borrow-group-remove" data-action="remove-group" data-direction="${direction}" data-group="${esc(group.id)}" title="Remove ${esc(group.person)}" aria-label="Remove ${esc(group.person)}">&times;</button>
+            </div>
+            <div class="borrow-card-rows">${rowsHtml}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function refreshBorrowColumn(prepId, direction) {
+      const el = document.getElementById(`borrow-groups-${direction}`);
+      if (el) el.innerHTML = renderBorrowGroupsHtml(prepId, direction);
+    }
+
+    function addBorrowCard(prepId, direction, person, entry, qty) {
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      const personTrimmed = person.trim();
+      let group = data[direction].find(g => g.person.toLowerCase() === personTrimmed.toLowerCase());
+      if (!group) {
+        group = { id: makeId(), person: personTrimmed, cards: [] };
+        data[direction].push(group);
+      }
+      const existing = group.cards.find(c => c.name.toLowerCase() === entry.name.toLowerCase() && (c.color || '') === (entry.color || ''));
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        group.cards.push({ id: makeId(), name: entry.name, color: entry.color || '', imgUrl: entry.imgUrl || null, qty });
+      }
+      saveBorrowStore(store);
+    }
+
+    function removeBorrowCard(prepId, direction, groupId, cardId) {
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      const group = data[direction].find(g => g.id === groupId);
+      if (!group) return;
+      group.cards = group.cards.filter(c => c.id !== cardId);
+      if (!group.cards.length) {
+        data[direction] = data[direction].filter(g => g.id !== groupId);
+      }
+      saveBorrowStore(store);
+    }
+
+    function removeBorrowGroup(prepId, direction, groupId) {
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      data[direction] = data[direction].filter(g => g.id !== groupId);
+      saveBorrowStore(store);
+    }
+
+    function closeBorrowCardAc() {
+      const list = document.getElementById('borrow-card-ac-list');
+      const input = document.getElementById('borrow-card-input');
+      if (list) { list.style.display = 'none'; list.innerHTML = ''; }
+      if (input) input.setAttribute('aria-expanded', 'false');
+    }
+
+    function buildBorrowCardAc(query) {
+      const list = document.getElementById('borrow-card-ac-list');
+      const input = document.getElementById('borrow-card-input');
+      const q = query.toLowerCase().trim();
+      if (q.length < 2) { closeBorrowCardAc(); return; }
+      const allVariants = getAllBorrowCardVariants();
+      const starts = allVariants.filter(e => e.name.toLowerCase().startsWith(q));
+      const contains = allVariants.filter(e => !e.name.toLowerCase().startsWith(q) && e.name.toLowerCase().includes(q));
+      const results = [...starts, ...contains].slice(0, 18);
+      if (!results.length) { closeBorrowCardAc(); return; }
+      list.innerHTML = '';
+      results.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'card-ac-item';
+        item.setAttribute('role', 'option');
+        const pitchLabel = PITCH_LABEL[entry.color] || '';
+        const typesStr = Array.isArray(entry.types) ? entry.types.slice(0, 2).join(', ') : '';
+        const meta = [typesStr, pitchLabel].filter(Boolean).join(' · ');
+        const dot = entry.color && PITCH_LABEL[entry.color] ? `<span class="borrow-pitch-dot ${entry.color}"></span>` : '';
+        const imgEl = entry.imgUrl
+          ? `<img class="card-ac-img" src="${esc(entry.imgUrl)}" alt="" loading="lazy" />`
+          : `<div class="card-ac-img-placeholder">?</div>`;
+        item.innerHTML = imgEl + `<div class="card-ac-info"><div class="card-ac-name">${dot}${esc(entry.name)}</div>${meta ? `<div class="card-ac-meta">${esc(meta)}</div>` : ''}</div>`;
+        item.addEventListener('mousedown', e => {
+          e.preventDefault();
+          input.value = entry.name;
+          borrowSelectedEntry = entry;
+          closeBorrowCardAc();
+        });
+        list.appendChild(item);
+      });
+      list.style.display = '';
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    function openBorrowModal(prepId, direction) {
+      borrowCurrentDirection = direction;
+      borrowSelectedEntry = null;
+      document.getElementById('borrow-modal-title').textContent = direction === 'borrowing' ? 'Add Borrowed Card' : 'Add Card to Lend';
+      document.getElementById('borrow-person-label').textContent = direction === 'borrowing' ? 'Borrowing from' : 'Lending to';
+      document.getElementById('borrow-person-input').value = '';
+      document.getElementById('borrow-card-input').value = '';
+      document.getElementById('borrow-qty-input').value = '1';
+      document.getElementById('borrow-modal-err').style.display = 'none';
+      document.getElementById('borrow-modal-err').textContent = '';
+      closeBorrowCardAc();
+
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      const names = [...new Set(data[direction].map(g => g.person))];
+      document.getElementById('borrow-person-datalist').innerHTML = names.map(n => `<option value="${esc(n)}"></option>`).join('');
+
+      const backdrop = document.getElementById('borrow-modal-backdrop');
+      backdrop.style.display = 'flex';
+      backdrop.dataset.prepId = prepId;
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('borrow-person-input').focus(), 60);
+
+      const loadingEl = document.getElementById('borrow-card-loading');
+      const saveBtn = document.getElementById('borrow-modal-save');
+      if (!borrowDb) {
+        loadingEl.style.display = '';
+        saveBtn.disabled = true;
+        ensureBorrowDb().then(() => {
+          loadingEl.style.display = 'none';
+          saveBtn.disabled = false;
+        }).catch(err => {
+          loadingEl.style.display = 'none';
+          saveBtn.disabled = false;
+          const errEl = document.getElementById('borrow-modal-err');
+          errEl.textContent = 'Could not load card database: ' + err.message;
+          errEl.style.display = '';
+        });
+      }
+    }
+
+    function closeBorrowModal() {
+      document.getElementById('borrow-modal-backdrop').style.display = 'none';
+      document.body.style.overflow = '';
+      closeBorrowCardAc();
+      borrowCurrentDirection = null;
+      borrowSelectedEntry = null;
+    }
+
+    function initBorrowTracker(prepId) {
+      const section = document.getElementById('borrow-tracker');
+      if (!section) return;
+
+      section.querySelectorAll('.borrow-add-btn').forEach(btn => {
+        btn.addEventListener('click', () => openBorrowModal(prepId, btn.dataset.direction));
+      });
+
+      section.addEventListener('click', e => {
+        const removeCardBtn = e.target.closest('[data-action="remove-card"]');
+        const removeGroupBtn = e.target.closest('[data-action="remove-group"]');
+        if (removeCardBtn) {
+          const { direction, group, card } = removeCardBtn.dataset;
+          removeBorrowCard(prepId, direction, group, card);
+          refreshBorrowColumn(prepId, direction);
+        } else if (removeGroupBtn) {
+          const { direction, group } = removeGroupBtn.dataset;
+          const groupData = loadBorrowStore()[prepId]?.[direction]?.find(g => g.id === group);
+          if (groupData && !confirm(`Remove all cards for "${groupData.person}"?`)) return;
+          removeBorrowGroup(prepId, direction, group);
+          refreshBorrowColumn(prepId, direction);
+        }
+      });
+
+      const cardInput = document.getElementById('borrow-card-input');
+      cardInput.addEventListener('input', () => { borrowSelectedEntry = null; buildBorrowCardAc(cardInput.value); });
+      cardInput.addEventListener('blur', () => setTimeout(closeBorrowCardAc, 120));
+      cardInput.addEventListener('keydown', e => { if (e.key === 'Escape') closeBorrowCardAc(); });
+
+      document.getElementById('borrow-modal-close').addEventListener('click', closeBorrowModal);
+      document.getElementById('borrow-modal-cancel').addEventListener('click', closeBorrowModal);
+      document.getElementById('borrow-modal-backdrop').addEventListener('click', function (e) {
+        if (e.target === this) closeBorrowModal();
+      });
+
+      document.getElementById('borrow-modal-save').addEventListener('click', () => {
+        const errEl = document.getElementById('borrow-modal-err');
+        errEl.style.display = 'none';
+        const person = document.getElementById('borrow-person-input').value.trim();
+        const qty = parseInt(document.getElementById('borrow-qty-input').value, 10);
+
+        if (!person) {
+          errEl.textContent = 'Name is required.';
+          errEl.style.display = '';
+          return;
+        }
+        if (!borrowSelectedEntry) {
+          errEl.textContent = 'Select a card from the list.';
+          errEl.style.display = '';
+          return;
+        }
+        if (!qty || qty < 1) {
+          errEl.textContent = 'Quantity must be at least 1.';
+          errEl.style.display = '';
+          return;
+        }
+
+        addBorrowCard(prepId, borrowCurrentDirection, person, borrowSelectedEntry, qty);
+        refreshBorrowColumn(prepId, borrowCurrentDirection);
+        closeBorrowModal();
+      });
+    }
+
     function renderDetail(p) {
       const tierLabel = getTierLabel(p.eventType);
       const tierClass = `t${p.tier}`;
@@ -170,7 +588,7 @@
           ${reportLinkHtml}
         </div></header>
         ${tldrawHtml}
-        <main class="main">${tabsHtml}${formatsHtml}</main>`;
+        <main class="main">${renderBorrowTrackerSection(p.id)}${tabsHtml}${formatsHtml}</main>`;
     }
 
     function initCollapsibles() {
@@ -208,6 +626,7 @@
       container.innerHTML = renderDetail(prep);
       initCollapsibles();
       initTabs();
+      initBorrowTracker(prep.id);
     }
   })();
   </script>
