@@ -1,5 +1,26 @@
 const PREPS = [
   {
+    id: 'essen-battleground-2026',
+    event: 'Battleground Essen',
+    eventType: 'Battleground',
+    tier: 2,
+    date: '2026-07-25',
+    displayDate: '25.07.26',
+    formats: [
+      {
+        id: 'cc',
+        name: 'Classic Constructed',
+        abbr: 'CC',
+        hero: 'TBD',
+        summary: [],
+        heroReasons: [],
+        predictedMeta: [],
+        notes: [],
+      },
+    ],
+  },
+
+  {
     id: 'prague-calling-2026',
     event: 'The Calling Prague 2026',
     eventType: 'Calling',
