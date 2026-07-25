@@ -120,10 +120,14 @@
     .borrow-card-rows { display: flex; flex-direction: column; }
     .borrow-card-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.7rem; border-bottom: 1px solid var(--border); }
     .borrow-card-row:last-child { border-bottom: none; }
+    .borrow-card-row.returned { opacity: 0.5; }
+    .borrow-card-check { flex-shrink: 0; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
     .borrow-card-img { width: 30px; height: 42px; object-fit: cover; object-position: top center; border-radius: 2px; background: var(--border); flex-shrink: 0; display: block; }
     .borrow-card-img-placeholder { width: 30px; height: 42px; flex-shrink: 0; background: var(--border); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.6rem; }
     .borrow-card-info { min-width: 0; flex: 1; }
     .borrow-card-name { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .borrow-card-row.returned .borrow-card-name { text-decoration: line-through; }
+    .borrow-returned-tag { font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
     .borrow-pitch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .borrow-pitch-dot.red { background: var(--red-c); } .borrow-pitch-dot.yellow { background: var(--yellow-c); } .borrow-pitch-dot.blue { background: var(--blue-c); }
     .borrow-card-qty { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; color: var(--muted2); flex-shrink: 0; }
@@ -341,10 +345,15 @@
       const imgEl = card.imgUrl
         ? `<img class="borrow-card-img" src="${esc(card.imgUrl)}" alt="" loading="lazy" />`
         : `<div class="borrow-card-img-placeholder">?</div>`;
+      const returnedClass = card.returned ? ' returned' : '';
+      const returnedTag = card.returned ? `<span class="borrow-returned-tag">Returned</span>` : '';
+      const returnedLabel = direction === 'borrowing' ? 'returned to lender' : 'returned by borrower';
       return `
-        <div class="borrow-card-row">
+        <div class="borrow-card-row${returnedClass}">
+          <input type="checkbox" class="borrow-card-check" data-action="toggle-returned" data-direction="${direction}" data-group="${esc(groupId)}" data-card="${esc(card.id)}" title="Mark as returned" aria-label="Mark ${esc(card.name)} as ${returnedLabel}"${card.returned ? ' checked' : ''} />
           ${imgEl}
           <div class="borrow-card-info"><span class="borrow-card-name">${dot}${esc(card.name)}</span></div>
+          ${returnedTag}
           <span class="borrow-card-qty">×${card.qty}</span>
           <button class="borrow-card-remove" data-action="remove-card" data-direction="${direction}" data-group="${esc(groupId)}" data-card="${esc(card.id)}" title="Remove card" aria-label="Remove ${esc(card.name)}">&times;</button>
         </div>`;
@@ -359,12 +368,15 @@
       }
       return groups.map(group => {
         const totalQty = group.cards.reduce((s, c) => s + c.qty, 0);
-        const rowsHtml = group.cards.map(c => renderBorrowCardRow(c, direction, group.id)).join('');
+        const returnedQty = group.cards.filter(c => c.returned).reduce((s, c) => s + c.qty, 0);
+        const countText = `${totalQty} card${totalQty === 1 ? '' : 's'}${returnedQty ? ` · ${returnedQty} returned` : ''}`;
+        const sortedCards = [...group.cards].sort((a, b) => (a.returned ? 1 : 0) - (b.returned ? 1 : 0));
+        const rowsHtml = sortedCards.map(c => renderBorrowCardRow(c, direction, group.id)).join('');
         return `
           <div class="borrow-group" data-group-id="${esc(group.id)}">
             <div class="borrow-group-header">
               <span class="borrow-group-person">${esc(group.person)}</span>
-              <span class="borrow-group-count">${totalQty} card${totalQty === 1 ? '' : 's'}</span>
+              <span class="borrow-group-count">${countText}</span>
               <button class="borrow-group-remove" data-action="remove-group" data-direction="${direction}" data-group="${esc(group.id)}" title="Remove ${esc(group.person)}" aria-label="Remove ${esc(group.person)}">&times;</button>
             </div>
             <div class="borrow-card-rows">${rowsHtml}</div>
@@ -390,8 +402,19 @@
       if (existing) {
         existing.qty += qty;
       } else {
-        group.cards.push({ id: makeId(), name: entry.name, color: entry.color || '', imgUrl: entry.imgUrl || null, qty });
+        group.cards.push({ id: makeId(), name: entry.name, color: entry.color || '', imgUrl: entry.imgUrl || null, qty, returned: false });
       }
+      saveBorrowStore(store);
+    }
+
+    function toggleBorrowCardReturned(prepId, direction, groupId, cardId) {
+      const store = loadBorrowStore();
+      const data = getBorrowEventData(store, prepId);
+      const group = data[direction].find(g => g.id === groupId);
+      if (!group) return;
+      const card = group.cards.find(c => c.id === cardId);
+      if (!card) return;
+      card.returned = !card.returned;
       saveBorrowStore(store);
     }
 
@@ -516,6 +539,7 @@
       section.addEventListener('click', e => {
         const removeCardBtn = e.target.closest('[data-action="remove-card"]');
         const removeGroupBtn = e.target.closest('[data-action="remove-group"]');
+        const toggleReturnedBtn = e.target.closest('[data-action="toggle-returned"]');
         if (removeCardBtn) {
           const { direction, group, card } = removeCardBtn.dataset;
           removeBorrowCard(prepId, direction, group, card);
@@ -525,6 +549,10 @@
           const groupData = loadBorrowStore()[prepId]?.[direction]?.find(g => g.id === group);
           if (groupData && !confirm(`Remove all cards for "${groupData.person}"?`)) return;
           removeBorrowGroup(prepId, direction, group);
+          refreshBorrowColumn(prepId, direction);
+        } else if (toggleReturnedBtn) {
+          const { direction, group, card } = toggleReturnedBtn.dataset;
+          toggleBorrowCardReturned(prepId, direction, group, card);
           refreshBorrowColumn(prepId, direction);
         }
       });
