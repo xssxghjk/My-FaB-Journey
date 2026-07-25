@@ -103,7 +103,7 @@
     .borrow-tracker-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 1.1rem; font-weight: 700; }
     .borrow-tracker-sub { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
     .borrow-cols { display: grid; grid-template-columns: 1fr 1fr; }
-    .borrow-col { padding: 1rem 1.4rem; }
+    .borrow-col { padding: 1rem 1.4rem; min-width: 0; }
     .borrow-col + .borrow-col { border-left: 1px solid var(--border); }
     .borrow-col-header { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.75rem; }
     .borrow-col-title { font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
@@ -125,7 +125,8 @@
     .borrow-card-img { width: 30px; height: 42px; object-fit: cover; object-position: top center; border-radius: 2px; background: var(--border); flex-shrink: 0; display: block; }
     .borrow-card-img-placeholder { width: 30px; height: 42px; flex-shrink: 0; background: var(--border); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.6rem; }
     .borrow-card-info { min-width: 0; flex: 1; }
-    .borrow-card-name { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .borrow-card-name { font-family: 'DM Serif Text', Georgia, serif; font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .borrow-card-name-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .borrow-card-row.returned .borrow-card-name { text-decoration: line-through; }
     .borrow-returned-tag { font-family: 'DM Serif Text', Georgia, serif; font-style: italic; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
     .borrow-pitch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -166,7 +167,7 @@
     .card-ac-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.35rem; }
     .card-ac-meta { font-size: 0.7rem; color: var(--muted2); }
 
-    @media (max-width: 600px) { .prep-title { font-size: 1.4rem; } .prep-section { padding: 0.85rem 1rem; } .page-header { padding: 1.75rem 1.25rem 1.5rem; } .format-card-header { padding: 0.85rem 1rem; } .date-content { padding: 0.7rem 0.85rem; } .borrow-cols { grid-template-columns: 1fr; } .borrow-col + .borrow-col { border-left: none; border-top: 1px solid var(--border); } }
+    @media (max-width: 600px) { .prep-title { font-size: 1.4rem; } .prep-section { padding: 0.85rem 1rem; } .page-header { padding: 1.75rem 1.25rem 1.5rem; } .format-card-header { padding: 0.85rem 1rem; } .date-content { padding: 0.7rem 0.85rem; } .borrow-cols { grid-template-columns: 1fr; } .borrow-col + .borrow-col { border-left: none; border-top: 1px solid var(--border); } .borrow-col { padding: 0.85rem 1rem; } .borrow-card-row { gap: 0.35rem; padding: 0.4rem 0.5rem; } .borrow-card-check { width: 13px; height: 13px; } .borrow-returned-tag { font-size: 0.56rem; letter-spacing: 0.02em; } .borrow-card-qty { font-size: 0.72rem; } }
     footer { padding: 1.5rem 2rem; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; color: var(--muted-2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--accent); }
@@ -352,7 +353,7 @@
         <div class="borrow-card-row${returnedClass}">
           <input type="checkbox" class="borrow-card-check" data-action="toggle-returned" data-direction="${direction}" data-group="${esc(groupId)}" data-card="${esc(card.id)}" title="Mark as returned" aria-label="Mark ${esc(card.name)} as ${returnedLabel}"${card.returned ? ' checked' : ''} />
           ${imgEl}
-          <div class="borrow-card-info"><span class="borrow-card-name">${dot}${esc(card.name)}</span></div>
+          <div class="borrow-card-info"><span class="borrow-card-name">${dot}<span class="borrow-card-name-text">${esc(card.name)}</span></span></div>
           ${returnedTag}
           <span class="borrow-card-qty">×${card.qty}</span>
           <button class="borrow-card-remove" data-action="remove-card" data-direction="${direction}" data-group="${esc(groupId)}" data-card="${esc(card.id)}" title="Remove card" aria-label="Remove ${esc(card.name)}">&times;</button>
