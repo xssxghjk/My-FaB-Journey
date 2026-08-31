@@ -117,6 +117,20 @@
     .color-chip.active { color: var(--text); border-color: var(--accent); background: var(--accent-bg); }
     .color-chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
+    .type-chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .type-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.8rem; border-radius: 20px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2); cursor: pointer; font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.8rem; transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .type-chip:hover { border-color: var(--muted-dim); }
+    .type-chip.active { color: var(--text); }
+    .type-chip[data-type="action"].active { border-color: var(--action-color); background: color-mix(in srgb, var(--action-color) 14%, transparent); }
+    .type-chip[data-type="reaction"].active { border-color: var(--reaction-color); background: color-mix(in srgb, var(--reaction-color) 14%, transparent); }
+    .type-chip[data-type="hidden"].active { border-color: var(--hidden-color); background: color-mix(in srgb, var(--hidden-color) 14%, transparent); }
+
     .reset-btn {
       margin-left: auto; padding: 0.4rem 0.9rem; background: transparent;
       border: 1px solid var(--border2); color: var(--muted); border-radius: 20px;
@@ -278,6 +292,14 @@
       <div class="color-chip-group" id="colorChips"></div>
     </div>
     <div class="control-row">
+      <span class="control-label">Quick Filters</span>
+      <div class="type-chip-group" id="typeChips">
+        <button type="button" class="type-chip" data-type="action">Action</button>
+        <button type="button" class="type-chip" data-type="reaction">Reaction</button>
+        <button type="button" class="type-chip" data-type="hidden">Hidden</button>
+      </div>
+    </div>
+    <div class="control-row">
       <label class="staples-toggle">
         <input type="checkbox" id="staplesFilter" checked>
         Filter staples
@@ -326,7 +348,16 @@
   var leaders = [];           // { id, champion, title, label, search, domains, imageUrl, signatureCards }
 
   var mode = 'leader'; // 'colors' | 'leader'
-  var state = { colors: [], leaderId: '', filterStaples: true };
+  var state = { colors: [], leaderId: '', filterStaples: true, types: [] };
+
+  function cardMatchesTypes(card, types) {
+    if (!types.length) return true;
+    return types.some(function (t) {
+      if (t === 'action') return card.hasAction;
+      if (t === 'reaction') return card.hasReaction;
+      return card.hasHidden;
+    });
+  }
 
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -524,6 +555,7 @@
       }
       var pool = interactionCards.filter(function (c) { return cardFitsColors(c, state.colors); });
       if (state.filterStaples) pool = pool.filter(isStaple);
+      pool = pool.filter(function (c) { return cardMatchesTypes(c, state.types); });
       total = pool.length;
       html = pool.length ? renderGroups(pool) : '<p class="status-msg">No cards found for this selection.</p>';
     } else {
@@ -535,9 +567,10 @@
       var leader = leaders.filter(function (l) { return l.id === state.leaderId; })[0];
       if (!leader) { resultsEl.innerHTML = ''; return; }
 
-      var sigCards = leader.signatureCards;
+      var sigCards = leader.signatureCards.filter(function (c) { return cardMatchesTypes(c, state.types); });
       var mainPool = interactionCards.filter(function (c) { return cardFitsColors(c, leader.domains); });
       if (state.filterStaples) mainPool = mainPool.filter(isStaple);
+      mainPool = mainPool.filter(function (c) { return cardMatchesTypes(c, state.types); });
       total = sigCards.length + mainPool.length;
 
       var sigHtml = '<div class="sig-section">' +
@@ -576,6 +609,20 @@
     if (i === -1) state.colors.push(d);
     else state.colors.splice(i, 1);
     syncColorChips();
+    render();
+  }
+
+  function syncTypeChips() {
+    document.querySelectorAll('#typeChips .type-chip').forEach(function (btn) {
+      btn.classList.toggle('active', state.types.indexOf(btn.dataset.type) !== -1);
+    });
+  }
+
+  function toggleType(t) {
+    var i = state.types.indexOf(t);
+    if (i === -1) state.types.push(t);
+    else state.types.splice(i, 1);
+    syncTypeChips();
     render();
   }
 
@@ -671,17 +718,24 @@
 
     initLeaderSearch();
 
+    document.getElementById('typeChips').addEventListener('click', function (e) {
+      var chip = e.target.closest('.type-chip[data-type]');
+      if (!chip) return;
+      toggleType(chip.dataset.type);
+    });
+
     document.getElementById('staplesFilter').addEventListener('change', function (e) {
       state.filterStaples = e.target.checked;
       render();
     });
 
     document.getElementById('resetBtn').addEventListener('click', function () {
-      state = { colors: [], leaderId: '', filterStaples: true };
+      state = { colors: [], leaderId: '', filterStaples: true, types: [] };
       document.getElementById('leaderSearch').value = '';
       document.getElementById('staplesFilter').checked = true;
       closeLeaderDropdown();
       syncColorChips();
+      syncTypeChips();
       render();
     });
 
