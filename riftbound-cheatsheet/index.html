@@ -34,6 +34,7 @@
 
       --action-color:   #5ab4cc;
       --reaction-color: #e0685a;
+      --hidden-color:   #9a97c9;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -74,26 +75,41 @@
     .speed-legend b { font-style: normal; }
     .speed-legend .sl-action b { color: var(--action-color); }
     .speed-legend .sl-reaction b { color: var(--reaction-color); }
+    .speed-legend .sl-hidden b { color: var(--hidden-color); }
 
     .source-note { margin-top: 0.9rem; font-size: 0.7rem; color: var(--muted-dim); font-style: italic; }
     .source-note a { color: var(--muted); }
 
     /* ── Controls ── */
     .controls {
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      margin-bottom: 2rem;
+      background: var(--surface);
+    }
+    .controls-summary {
       position: sticky;
       top: 0;
       z-index: 40;
-      background: rgba(28,24,20,0.94);
-      backdrop-filter: blur(6px);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 1rem 1.15rem;
-      margin-bottom: 2rem;
+      list-style: none;
       display: flex;
-      flex-direction: column;
-      gap: 0.9rem;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.8rem 1.15rem;
+      background: rgba(28,24,20,0.96);
+      backdrop-filter: blur(6px);
+      border-radius: 3px;
+      cursor: pointer;
+      user-select: none;
     }
-    @media (max-width: 1024px) { .controls { top: 52px; } }
+    @media (max-width: 1024px) { .controls-summary { top: 52px; } }
+    .controls-summary::-webkit-details-marker { display: none; }
+    .controls-summary .caret { flex-shrink: 0; color: var(--muted); transition: transform 0.15s; }
+    .controls[open] .controls-summary .caret { transform: rotate(90deg); }
+    .controls-summary .filters-title { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; font-style: italic; font-size: 1rem; flex-shrink: 0; }
+    .controls-summary .filters-summary-text { color: var(--muted); font-size: 0.74rem; font-style: italic; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .controls-body { padding: 1rem 1.15rem 1.15rem; display: flex; flex-direction: column; gap: 0.9rem; border-top: 1px solid var(--border); }
 
     .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; }
     .control-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; font-style: italic; color: var(--muted-dim); width: 100%; }
@@ -189,6 +205,7 @@
     .rb-badge { font-size: 0.6rem; letter-spacing: 0.06em; padding: 0.1rem 0.4rem; border-radius: 2px; font-style: normal; font-family: 'DM Serif Text', Georgia, serif; }
     .rb-badge.action { color: var(--action-color); border: 1px solid color-mix(in srgb, var(--action-color) 45%, transparent); background: color-mix(in srgb, var(--action-color) 12%, transparent); }
     .rb-badge.reaction { color: var(--reaction-color); border: 1px solid color-mix(in srgb, var(--reaction-color) 45%, transparent); background: color-mix(in srgb, var(--reaction-color) 12%, transparent); }
+    .rb-badge.hidden { color: var(--hidden-color); border: 1px solid color-mix(in srgb, var(--hidden-color) 45%, transparent); background: color-mix(in srgb, var(--hidden-color) 12%, transparent); }
     .rb-meta { font-size: 0.68rem; color: var(--muted-dim); margin-bottom: 0.35rem; }
     .rb-text { font-size: 0.78rem; color: var(--muted2); line-height: 1.55; }
     .rb-tok { display: inline-flex; align-items: center; gap: 1px; font-size: 0.72rem; color: var(--accent); }
@@ -196,6 +213,7 @@
     .rb-tok-rune-rainbow { background: conic-gradient(var(--dom-fury), var(--dom-order), var(--dom-calm), var(--dom-mind), var(--dom-chaos), var(--dom-body), var(--dom-fury)); }
     .rb-inline-action { color: var(--action-color); }
     .rb-inline-reaction { color: var(--reaction-color); }
+    .rb-inline-hidden { color: var(--hidden-color); }
     .rb-kw { color: var(--muted2); font-weight: 400; }
 
     /* ── Lightbox ── */
@@ -206,6 +224,7 @@
       .page { padding: 2rem 1.25rem 4rem; }
       .card-grid { grid-template-columns: 1fr; }
       .cost-slider-wrap { max-width: none; }
+      .reset-btn { margin-left: 0; flex-basis: 100%; }
     }
   </style>
 </head>
@@ -217,36 +236,50 @@
     <div class="speed-legend">
       <span class="sl-action"><b>Action</b> — playable on your turn or in a showdown.</span>
       <span class="sl-reaction"><b>Reaction</b> — playable any time, even on your opponent's turn.</span>
+      <span class="sl-hidden"><b>Hidden</b> — play face-down now, flip and resolve later for free.</span>
     </div>
     <p class="source-note">Card data from the community <a href="https://riftcodex.com/" target="_blank" rel="noopener">Riftcodex</a> dataset. Riftbound is a trademark of Riot Games; this is an unofficial fan tool, not affiliated with or endorsed by Riot Games.</p>
   </header>
 
-  <div class="controls" id="controls" hidden>
-    <div class="control-row">
-      <span class="control-label">Domain</span>
-      <button class="chip chip-all active" id="domainAll" type="button">All</button>
-      <div id="domainChips" style="display:contents"></div>
-    </div>
-    <div class="control-row">
-      <span class="control-label">Speed</span>
-      <button class="chip active" id="chipAction" type="button" style="--dot:var(--action-color)"><span class="dot"></span>Action</button>
-      <button class="chip active" id="chipReaction" type="button" style="--dot:var(--reaction-color)"><span class="dot"></span>Reaction</button>
-    </div>
-    <div class="control-row">
-      <span class="control-label">Cost</span>
-      <div class="cost-slider-wrap">
-        <div class="cost-slider">
-          <div class="track"></div>
-          <div class="range" id="costRangeBar"></div>
-          <input type="range" id="costMin" min="0" max="8" step="1" value="0">
-          <input type="range" id="costMax" min="0" max="8" step="1" value="8">
-        </div>
-        <div class="cost-readout" id="costReadout">0 – 8</div>
+  <details class="controls" id="controls" hidden>
+    <summary class="controls-summary">
+      <svg class="caret" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="filters-title">Filters</span>
+      <span class="filters-summary-text" id="filterSummary">Select a domain and a speed to see cards</span>
+    </summary>
+    <div class="controls-body">
+      <div class="control-row">
+        <span class="control-label">Domain</span>
+        <button class="chip chip-all" id="domainAll" type="button">All</button>
+        <div id="domainChips" style="display:contents"></div>
       </div>
-      <button class="reset-btn" id="resetBtn" type="button">Reset filters</button>
+      <div class="control-row">
+        <span class="control-label">Speed</span>
+        <button class="chip chip-all" id="speedAll" type="button">All</button>
+        <button class="chip" id="chipAction" type="button" style="--dot:var(--action-color)"><span class="dot"></span>Action</button>
+        <button class="chip" id="chipReaction" type="button" style="--dot:var(--reaction-color)"><span class="dot"></span>Reaction</button>
+        <button class="chip" id="chipHidden" type="button" style="--dot:var(--hidden-color)"><span class="dot"></span>Hidden</button>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Card types</span>
+        <button class="chip" id="chipLegends" type="button">Include Legends (always-on abilities)</button>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Cost</span>
+        <div class="cost-slider-wrap">
+          <div class="cost-slider">
+            <div class="track"></div>
+            <div class="range" id="costRangeBar"></div>
+            <input type="range" id="costMin" min="0" max="8" step="1" value="0">
+            <input type="range" id="costMax" min="0" max="8" step="1" value="8">
+          </div>
+          <div class="cost-readout" id="costReadout">0 – 8</div>
+        </div>
+        <button class="reset-btn" id="resetBtn" type="button">Reset filters</button>
+      </div>
+      <div class="result-count" id="resultCount"></div>
     </div>
-    <div class="result-count" id="resultCount"></div>
-  </div>
+  </details>
 
   <div id="statusMsg" class="status-msg">Fetching Riftbound card data…</div>
   <div id="results"></div>
@@ -265,9 +298,9 @@
 
   var allCards = [];
   var state = {
-    domains: new Set(DOMAIN_ORDER),
-    action: true,
-    reaction: true,
+    domains: new Set(),
+    speeds: { action: false, reaction: false, hidden: false },
+    includeLegends: false,
     costMin: 0,
     costMax: 8
   };
@@ -288,8 +321,8 @@
     t = t.replace(/:rb_rune_(fury|calm|mind|body|chaos|order):/g, function (_, d) {
       return '<span class="rb-tok-rune" style="background:var(' + DOMAIN_VAR[cap(d)] + ')" title="' + cap(d) + ' rune"></span>';
     });
-    t = t.replace(/\[(Action|Reaction)\]/g, function (_, k) { return '<b class="rb-inline-' + k.toLowerCase() + '">[' + k + ']</b>'; });
-    t = t.replace(/\[(?!Action\]|Reaction\])([A-Za-z][A-Za-z '\-]*?)\]/g, '<b class="rb-kw">[$1]</b>');
+    t = t.replace(/\[(Action|Reaction|Hidden)\]/g, function (_, k) { return '<b class="rb-inline-' + k.toLowerCase() + '">[' + k + ']</b>'; });
+    t = t.replace(/\[(?!Action\]|Reaction\]|Hidden\])([A-Za-z][A-Za-z '\-]*?)\]/g, '<b class="rb-kw">[$1]</b>');
     t = t.replace(/\n/g, '<br>');
     return t;
   }
@@ -298,7 +331,7 @@
     var best = new Map();
     raw.forEach(function (c) {
       var text = c.text || '';
-      if (text.indexOf('[Action]') === -1 && text.indexOf('[Reaction]') === -1) return;
+      if (text.indexOf('[Action]') === -1 && text.indexOf('[Reaction]') === -1 && text.indexOf('[Hidden]') === -1) return;
       var score = (c.signature ? 1 : 0) + (c.alternateArt ? 1 : 0);
       var cur = best.get(c.baseName);
       if (!cur || score < cur.score) best.set(c.baseName, { score: score, card: c });
@@ -317,6 +350,7 @@
         power: c.power,
         hasAction: text.indexOf('[Action]') !== -1,
         hasReaction: text.indexOf('[Reaction]') !== -1,
+        hasHidden: text.indexOf('[Hidden]') !== -1,
         html: formatText(text),
         imageUrl: c.imageUrl,
         rarity: c.rarity,
@@ -328,7 +362,8 @@
   }
 
   function cardMatches(card) {
-    var speedOk = (state.action && card.hasAction) || (state.reaction && card.hasReaction);
+    if (card.type === 'Legend' && !state.includeLegends) return false;
+    var speedOk = (state.speeds.action && card.hasAction) || (state.speeds.reaction && card.hasReaction) || (state.speeds.hidden && card.hasHidden);
     if (!speedOk) return false;
     if (card.energy != null && (card.energy < state.costMin || card.energy > state.costMax)) return false;
     return true;
@@ -338,6 +373,7 @@
     var badges = '';
     if (card.hasAction) badges += '<span class="rb-badge action">ACTION</span>';
     if (card.hasReaction) badges += '<span class="rb-badge reaction">REACTION</span>';
+    if (card.hasHidden) badges += '<span class="rb-badge hidden">HIDDEN</span>';
     var metaBits = [card.supertype ? card.supertype + ' ' + card.type : card.type];
     if (card.might != null) metaBits.push(card.might + ' might');
     if (card.power != null) metaBits.push(card.power + ' power');
@@ -361,21 +397,44 @@
     );
   }
 
+  function updateFilterSummary() {
+    var el = document.getElementById('filterSummary');
+    if (!state.domains.size) { el.textContent = 'Select a domain and a speed to see cards'; return; }
+    var speedNames = [];
+    if (state.speeds.action) speedNames.push('Action');
+    if (state.speeds.reaction) speedNames.push('Reaction');
+    if (state.speeds.hidden) speedNames.push('Hidden');
+    if (!speedNames.length) { el.textContent = 'Select a speed to see cards'; return; }
+    var domainNames = state.domains.size === DOMAIN_ORDER.length ? 'All domains' : Array.from(state.domains).join(', ');
+    var legendNote = state.includeLegends ? ' · incl. Legends' : '';
+    el.textContent = domainNames + ' · ' + speedNames.join(', ') + ' · cost ' + state.costMin + '–' + state.costMax + legendNote;
+  }
+
   function render() {
+    updateFilterSummary();
     var resultsEl = document.getElementById('results');
     var total = 0;
     var html = '';
-    DOMAIN_ORDER.forEach(function (domain) {
-      if (!state.domains.has(domain)) return;
-      var cards = allCards.filter(function (c) { return c.domains.indexOf(domain) !== -1 && cardMatches(c); });
-      if (!cards.length) return;
-      total += cards.length;
-      html += '<section class="domain-section">' +
-        '<h2 class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')"><span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span></h2>' +
-        '<div class="card-grid">' + cards.map(renderCard).join('') + '</div>' +
-      '</section>';
-    });
-    resultsEl.innerHTML = html || '<p class="status-msg">No cards match the current filters.</p>';
+    var hasSpeed = state.speeds.action || state.speeds.reaction || state.speeds.hidden;
+    if (state.domains.size && hasSpeed) {
+      DOMAIN_ORDER.forEach(function (domain) {
+        if (!state.domains.has(domain)) return;
+        var cards = allCards.filter(function (c) { return c.domains.indexOf(domain) !== -1 && cardMatches(c); });
+        if (!cards.length) return;
+        total += cards.length;
+        html += '<section class="domain-section">' +
+          '<h2 class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')"><span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span></h2>' +
+          '<div class="card-grid">' + cards.map(renderCard).join('') + '</div>' +
+        '</section>';
+      });
+    }
+    if (!state.domains.size) {
+      resultsEl.innerHTML = '<p class="status-msg">Select at least one domain above to see cards.</p>';
+    } else if (!hasSpeed) {
+      resultsEl.innerHTML = '<p class="status-msg">Select Action, Reaction, or Hidden above to see cards.</p>';
+    } else {
+      resultsEl.innerHTML = html || '<p class="status-msg">No cards match the current filters.</p>';
+    }
     document.getElementById('resultCount').textContent = total + ' card' + (total !== 1 ? 's' : '') + ' shown (domains counted once per matching color)';
   }
 
@@ -384,7 +443,7 @@
     DOMAIN_ORDER.forEach(function (domain) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'chip active';
+      btn.className = 'chip';
       btn.style.setProperty('--dot', 'var(' + DOMAIN_VAR[domain] + ')');
       btn.innerHTML = '<span class="dot"></span>' + domain;
       btn.addEventListener('click', function () {
@@ -396,9 +455,10 @@
       wrap.appendChild(btn);
     });
     document.getElementById('domainAll').addEventListener('click', function () {
-      state.domains = new Set(DOMAIN_ORDER);
-      Array.prototype.forEach.call(wrap.children, function (c) { c.classList.add('active'); });
-      this.classList.add('active');
+      var allActive = state.domains.size === DOMAIN_ORDER.length;
+      state.domains = allActive ? new Set() : new Set(DOMAIN_ORDER);
+      Array.prototype.forEach.call(wrap.children, function (c) { c.classList.toggle('active', !allActive); });
+      this.classList.toggle('active', !allActive);
       render();
     });
   }
@@ -421,14 +481,35 @@
 
     var chipAction = document.getElementById('chipAction');
     var chipReaction = document.getElementById('chipReaction');
-    chipAction.addEventListener('click', function () {
-      state.action = !state.action;
-      chipAction.classList.toggle('active', state.action);
+    var chipHidden = document.getElementById('chipHidden');
+    var speedAll = document.getElementById('speedAll');
+    var chipLegends = document.getElementById('chipLegends');
+
+    function speedChip(btn, key) {
+      btn.addEventListener('click', function () {
+        state.speeds[key] = !state.speeds[key];
+        btn.classList.toggle('active', state.speeds[key]);
+        speedAll.classList.toggle('active', state.speeds.action && state.speeds.reaction && state.speeds.hidden);
+        render();
+      });
+    }
+    speedChip(chipAction, 'action');
+    speedChip(chipReaction, 'reaction');
+    speedChip(chipHidden, 'hidden');
+
+    speedAll.addEventListener('click', function () {
+      var allActive = state.speeds.action && state.speeds.reaction && state.speeds.hidden;
+      state.speeds = { action: !allActive, reaction: !allActive, hidden: !allActive };
+      chipAction.classList.toggle('active', !allActive);
+      chipReaction.classList.toggle('active', !allActive);
+      chipHidden.classList.toggle('active', !allActive);
+      this.classList.toggle('active', !allActive);
       render();
     });
-    chipReaction.addEventListener('click', function () {
-      state.reaction = !state.reaction;
-      chipReaction.classList.toggle('active', state.reaction);
+
+    chipLegends.addEventListener('click', function () {
+      state.includeLegends = !state.includeLegends;
+      chipLegends.classList.toggle('active', state.includeLegends);
       render();
     });
 
@@ -439,16 +520,19 @@
     updateCostBar();
 
     document.getElementById('resetBtn').addEventListener('click', function () {
-      state.domains = new Set(DOMAIN_ORDER);
-      state.action = true;
-      state.reaction = true;
+      state.domains = new Set();
+      state.speeds = { action: false, reaction: false, hidden: false };
+      state.includeLegends = false;
       costMin.value = 0;
       costMax.value = 8;
       updateCostBar();
-      document.getElementById('domainAll').classList.add('active');
-      Array.prototype.forEach.call(document.getElementById('domainChips').children, function (c) { c.classList.add('active'); });
-      chipAction.classList.add('active');
-      chipReaction.classList.add('active');
+      document.getElementById('domainAll').classList.remove('active');
+      Array.prototype.forEach.call(document.getElementById('domainChips').children, function (c) { c.classList.remove('active'); });
+      speedAll.classList.remove('active');
+      chipAction.classList.remove('active');
+      chipReaction.classList.remove('active');
+      chipHidden.classList.remove('active');
+      chipLegends.classList.remove('active');
       render();
     });
 
