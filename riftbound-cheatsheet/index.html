@@ -178,6 +178,16 @@
 
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.65rem; }
 
+    .cost-divider { display: flex; align-items: center; gap: 0.6rem; margin: 0.85rem 0 0.5rem; }
+    .cost-divider:first-child { margin-top: 0; }
+    .cost-divider::before, .cost-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .cost-divider-badge {
+      flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      font-size: 0.72rem; color: var(--accent); font-style: normal;
+    }
+
     .rb-card {
       display: flex; gap: 0.7rem;
       background: var(--surface); border: 1px solid var(--border);
@@ -398,6 +408,16 @@
     el.textContent = domainNames + ' · ' + speedNames.join(', ') + ' · cost ' + state.costMin + '–' + state.costMax + legendNote;
   }
 
+  function groupByCost(cards) {
+    var groups = [];
+    cards.forEach(function (c) {
+      var last = groups[groups.length - 1];
+      if (!last || last.cost !== c.energy) groups.push({ cost: c.energy, cards: [] });
+      groups[groups.length - 1].cards.push(c);
+    });
+    return groups;
+  }
+
   function render() {
     updateFilterSummary();
     var resultsEl = document.getElementById('results');
@@ -411,12 +431,16 @@
         if (!cards.length) return;
         total += cards.length;
         var open = state.collapsedDomains.has(domain) ? '' : ' open';
+        var groupsHtml = groupByCost(cards).map(function (g) {
+          return '<div class="cost-divider"><span class="cost-divider-badge">' + (g.cost != null ? g.cost : '—') + '</span></div>' +
+            '<div class="card-grid">' + g.cards.map(renderCard).join('') + '</div>';
+        }).join('');
         html += '<details class="domain-section" data-domain="' + domain + '"' + open + '>' +
           '<summary class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')">' +
             '<svg class="caret" viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
             '<span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span>' +
           '</summary>' +
-          '<div class="card-grid">' + cards.map(renderCard).join('') + '</div>' +
+          groupsHtml +
         '</details>';
       });
     }
