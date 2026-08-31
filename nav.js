@@ -102,6 +102,13 @@
       ]
     },
     {
+      label: 'Riftbound',
+      links: [
+        { key: 'riftbound-cheatsheet', href: '../riftbound-cheatsheet/', text: 'Action/Reaction Cheat Sheet',
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' }
+      ]
+    },
+    {
       label: 'Other Sites',
       links: [
         { key: 'ai-web-pages', href: 'https://xssxghjk.github.io/AI-Web-Pages/', text: 'AI Web Pages', external: true,
@@ -117,6 +124,7 @@
     if (/\/fab-deck-viewer(\/|$)/.test(p))         return 'deck-viewer';
     if (/\/fab-tournament(\/|$)/.test(p))          return 'tournament';
     if (/\/fab-draft-visualizer(\/|$)/.test(p))    return 'draft-visualizer';
+    if (/\/riftbound-cheatsheet(\/|$)/.test(p))    return 'riftbound-cheatsheet';
     return null;
   }
 

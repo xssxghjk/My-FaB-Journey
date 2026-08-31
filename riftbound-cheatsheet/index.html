@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riftbound Cheat Sheet — My FaB Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&family=Playfair+Display:ital,wght@0,700;0,900;1,400&display=swap">
+  <style>
+    [hidden] { display: none !important; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1c1814;
+      --surface: #252018;
+      --surface2: #2e271d;
+      --border: #3a3025;
+      --border2: #4a3e2e;
+      --accent: #c4864a;
+      --accent-bg: rgba(196,134,74,0.08);
+      --accent-border: rgba(196,134,74,0.25);
+      --text: #e8dfd0;
+      --muted: #9a8a76;
+      --muted2: #b5a48e;
+      --muted-dim: #5a4e40;
+
+      --dom-fury:       #d9463a;
+      --dom-calm:       #4f9e6e;
+      --dom-mind:       #3f8fd1;
+      --dom-body:       #d98a3d;
+      --dom-chaos:      #9b5cd6;
+      --dom-order:      #cdb03c;
+      --dom-colorless:  #8a8378;
+
+      --action-color:   #5ab4cc;
+      --reaction-color: #e0685a;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Serif Text', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 4px 4px, 6px 6px;
+      background-position: 0 0, 2px 2px;
+    }
+
+    .page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+    .page-header { margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--text); }
+    .page-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+    .page-subtitle { color: var(--muted); font-size: 0.92rem; font-style: italic; max-width: 640px; }
+
+    .speed-legend { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; font-size: 0.78rem; color: var(--muted2); font-style: italic; }
+    .speed-legend b { font-style: normal; }
+    .speed-legend .sl-action b { color: var(--action-color); }
+    .speed-legend .sl-reaction b { color: var(--reaction-color); }
+
+    .source-note { margin-top: 0.9rem; font-size: 0.7rem; color: var(--muted-dim); font-style: italic; }
+    .source-note a { color: var(--muted); }
+
+    /* ── Controls ── */
+    .controls {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(28,24,20,0.94);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+    @media (max-width: 1024px) { .controls { top: 52px; } }
+
+    .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; }
+    .control-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; font-style: italic; color: var(--muted-dim); width: 100%; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.32rem 0.75rem;
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 20px; cursor: pointer; user-select: none;
+      font-size: 0.78rem; color: var(--muted2);
+      transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+    }
+    .chip:hover { border-color: var(--muted-dim); }
+    .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dot, var(--accent)); flex-shrink: 0; }
+    .chip.active { color: var(--text); border-color: var(--dot, var(--accent)); background: color-mix(in srgb, var(--dot, var(--accent)) 16%, var(--surface2)); }
+    .chip:not(.active) { opacity: 0.55; }
+
+    .chip-all { border-style: dashed; }
+
+    .cost-slider-wrap { display: flex; align-items: center; gap: 0.9rem; flex: 1; min-width: 220px; max-width: 420px; }
+    .cost-slider { position: relative; flex: 1; height: 28px; }
+    .cost-slider .track { position: absolute; top: 50%; left: 0; right: 0; height: 3px; background: var(--border2); border-radius: 2px; transform: translateY(-50%); }
+    .cost-slider .range { position: absolute; top: 50%; height: 3px; background: var(--accent); border-radius: 2px; transform: translateY(-50%); }
+    .cost-slider input[type="range"] {
+      position: absolute; top: 0; left: 0; width: 100%; height: 28px;
+      margin: 0; background: transparent; appearance: none; -webkit-appearance: none;
+      pointer-events: none;
+    }
+    .cost-slider input[type="range"]::-webkit-slider-thumb {
+      appearance: none; -webkit-appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #1c1814;
+      cursor: pointer; pointer-events: auto; margin-top: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .cost-slider input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #1c1814;
+      cursor: pointer; pointer-events: auto;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .cost-slider input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
+    .cost-slider input[type="range"]::-moz-range-track { background: transparent; }
+    .cost-readout { font-size: 0.8rem; color: var(--text); white-space: nowrap; min-width: 70px; text-align: right; }
+    .cost-readout b { color: var(--accent); font-weight: 400; }
+
+    .reset-btn {
+      margin-left: auto; padding: 0.32rem 0.8rem; background: transparent;
+      border: 1px solid var(--border2); color: var(--muted); border-radius: 20px;
+      cursor: pointer; font-size: 0.72rem; font-style: italic; font-family: inherit;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .reset-btn:hover { color: var(--text); border-color: var(--muted-dim); }
+
+    .result-count { font-size: 0.72rem; color: var(--muted-dim); font-style: italic; }
+
+    /* ── Loading / empty ── */
+    .status-msg { padding: 3rem 1rem; text-align: center; color: var(--muted); font-size: 0.9rem; font-style: italic; }
+
+    /* ── Domain sections ── */
+    .domain-section { margin-bottom: 2.25rem; }
+    .domain-heading {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.4rem; font-weight: 700; font-style: italic;
+      padding-bottom: 0.5rem; margin-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--dom, var(--text));
+    }
+    .domain-heading .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--dom, var(--accent)); flex-shrink: 0; box-shadow: 0 0 8px color-mix(in srgb, var(--dom, var(--accent)) 60%, transparent); }
+    .domain-heading .count { margin-left: auto; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; color: var(--muted-dim); font-style: italic; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.65rem; }
+
+    .rb-card {
+      display: flex; gap: 0.7rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--dom, var(--accent));
+      border-radius: 2px; padding: 0.7rem 0.8rem;
+    }
+    .rb-thumb { flex-shrink: 0; width: 48px; height: 67px; border-radius: 3px; overflow: hidden; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; }
+    .rb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .rb-body { flex: 1; min-width: 0; }
+    .rb-top { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
+    .rb-cost {
+      flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border2);
+      font-size: 0.75rem; color: var(--accent); font-style: normal;
+    }
+    .rb-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; font-style: italic; font-size: 1.02rem; }
+    .rb-badges { display: flex; gap: 0.3rem; margin-left: auto; flex-shrink: 0; }
+    .rb-badge { font-size: 0.6rem; letter-spacing: 0.06em; padding: 0.1rem 0.4rem; border-radius: 2px; font-style: normal; font-family: 'DM Serif Text', Georgia, serif; }
+    .rb-badge.action { color: var(--action-color); border: 1px solid color-mix(in srgb, var(--action-color) 45%, transparent); background: color-mix(in srgb, var(--action-color) 12%, transparent); }
+    .rb-badge.reaction { color: var(--reaction-color); border: 1px solid color-mix(in srgb, var(--reaction-color) 45%, transparent); background: color-mix(in srgb, var(--reaction-color) 12%, transparent); }
+    .rb-meta { font-size: 0.68rem; color: var(--muted-dim); margin-bottom: 0.35rem; }
+    .rb-text { font-size: 0.78rem; color: var(--muted2); line-height: 1.55; }
+    .rb-tok { display: inline-flex; align-items: center; gap: 1px; font-size: 0.72rem; color: var(--accent); }
+    .rb-tok-rune { width: 8px; height: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+    .rb-tok-rune-rainbow { background: conic-gradient(var(--dom-fury), var(--dom-order), var(--dom-calm), var(--dom-mind), var(--dom-chaos), var(--dom-body), var(--dom-fury)); }
+    .rb-inline-action { color: var(--action-color); }
+    .rb-inline-reaction { color: var(--reaction-color); }
+    .rb-kw { color: var(--muted2); font-weight: 400; }
+
+    /* ── Lightbox ── */
+    .lightbox { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; padding: 2rem; cursor: zoom-out; }
+    .lightbox img { max-width: min(420px, 90vw); max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+
+    @media (max-width: 600px) {
+      .page { padding: 2rem 1.25rem 4rem; }
+      .card-grid { grid-template-columns: 1fr; }
+      .cost-slider-wrap { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-title">Riftbound Cheat Sheet</h1>
+    <p class="page-subtitle">Every Action and Reaction card in Riftbound, grouped by domain — filter by cost to drill in your outs and memorize what each color can do at instant speed.</p>
+    <div class="speed-legend">
+      <span class="sl-action"><b>Action</b> — playable on your turn or in a showdown.</span>
+      <span class="sl-reaction"><b>Reaction</b> — playable any time, even on your opponent's turn.</span>
+    </div>
+    <p class="source-note">Card data from the community <a href="https://riftcodex.com/" target="_blank" rel="noopener">Riftcodex</a> dataset. Riftbound is a trademark of Riot Games; this is an unofficial fan tool, not affiliated with or endorsed by Riot Games.</p>
+  </header>
+
+  <div class="controls" id="controls" hidden>
+    <div class="control-row">
+      <span class="control-label">Domain</span>
+      <button class="chip chip-all active" id="domainAll" type="button">All</button>
+      <div id="domainChips" style="display:contents"></div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Speed</span>
+      <button class="chip active" id="chipAction" type="button" style="--dot:var(--action-color)"><span class="dot"></span>Action</button>
+      <button class="chip active" id="chipReaction" type="button" style="--dot:var(--reaction-color)"><span class="dot"></span>Reaction</button>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Cost</span>
+      <div class="cost-slider-wrap">
+        <div class="cost-slider">
+          <div class="track"></div>
+          <div class="range" id="costRangeBar"></div>
+          <input type="range" id="costMin" min="0" max="8" step="1" value="0">
+          <input type="range" id="costMax" min="0" max="8" step="1" value="8">
+        </div>
+        <div class="cost-readout" id="costReadout">0 – 8</div>
+      </div>
+      <button class="reset-btn" id="resetBtn" type="button">Reset filters</button>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+  </div>
+
+  <div id="statusMsg" class="status-msg">Fetching Riftbound card data…</div>
+  <div id="results"></div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DB_URL = 'https://raw.githubusercontent.com/azoni/riftbound-card-bot/main/data/cards.json';
+
+  var DOMAIN_ORDER = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order', 'Colorless'];
+  var DOMAIN_VAR = { Fury: '--dom-fury', Calm: '--dom-calm', Mind: '--dom-mind', Body: '--dom-body', Chaos: '--dom-chaos', Order: '--dom-order', Colorless: '--dom-colorless' };
+
+  var allCards = [];
+  var state = {
+    domains: new Set(DOMAIN_ORDER),
+    action: true,
+    reaction: true,
+    costMin: 0,
+    costMax: 8
+  };
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function formatText(text) {
+    if (!text) return '';
+    var t = escapeHtml(text);
+    t = t.replace(/:rb_energy_(\d+):/g, function (_, n) { return '<span class="rb-tok">' + n + '⚡</span>'; });
+    t = t.replace(/:rb_might:/g, '<span class="rb-tok">⚔</span>');
+    t = t.replace(/:rb_exhaust:/g, '<span class="rb-tok">↻</span>');
+    t = t.replace(/:rb_rune_rainbow:/g, '<span class="rb-tok-rune rb-tok-rune-rainbow" title="Any rune"></span>');
+    t = t.replace(/:rb_rune_(fury|calm|mind|body|chaos|order):/g, function (_, d) {
+      return '<span class="rb-tok-rune" style="background:var(' + DOMAIN_VAR[cap(d)] + ')" title="' + cap(d) + ' rune"></span>';
+    });
+    t = t.replace(/\[(Action|Reaction)\]/g, function (_, k) { return '<b class="rb-inline-' + k.toLowerCase() + '">[' + k + ']</b>'; });
+    t = t.replace(/\[(?!Action\]|Reaction\])([A-Za-z][A-Za-z '\-]*?)\]/g, '<b class="rb-kw">[$1]</b>');
+    t = t.replace(/\n/g, '<br>');
+    return t;
+  }
+
+  function dedupeAndFilter(raw) {
+    var best = new Map();
+    raw.forEach(function (c) {
+      var text = c.text || '';
+      if (text.indexOf('[Action]') === -1 && text.indexOf('[Reaction]') === -1) return;
+      var score = (c.signature ? 1 : 0) + (c.alternateArt ? 1 : 0);
+      var cur = best.get(c.baseName);
+      if (!cur || score < cur.score) best.set(c.baseName, { score: score, card: c });
+    });
+    var out = [];
+    best.forEach(function (v) {
+      var c = v.card;
+      var text = c.text || '';
+      out.push({
+        name: c.baseName,
+        type: c.type,
+        supertype: c.supertype,
+        domains: (c.domains || []).filter(function (d) { return DOMAIN_ORDER.indexOf(d) !== -1; }),
+        energy: c.energy,
+        might: c.might,
+        power: c.power,
+        hasAction: text.indexOf('[Action]') !== -1,
+        hasReaction: text.indexOf('[Reaction]') !== -1,
+        html: formatText(text),
+        imageUrl: c.imageUrl,
+        rarity: c.rarity,
+        setLabel: c.setLabel
+      });
+    });
+    out.sort(function (a, b) { return (a.energy == null ? -1 : a.energy) - (b.energy == null ? -1 : b.energy) || a.name.localeCompare(b.name); });
+    return out;
+  }
+
+  function cardMatches(card) {
+    var speedOk = (state.action && card.hasAction) || (state.reaction && card.hasReaction);
+    if (!speedOk) return false;
+    if (card.energy != null && (card.energy < state.costMin || card.energy > state.costMax)) return false;
+    return true;
+  }
+
+  function renderCard(card) {
+    var badges = '';
+    if (card.hasAction) badges += '<span class="rb-badge action">ACTION</span>';
+    if (card.hasReaction) badges += '<span class="rb-badge reaction">REACTION</span>';
+    var metaBits = [card.supertype ? card.supertype + ' ' + card.type : card.type];
+    if (card.might != null) metaBits.push(card.might + ' might');
+    if (card.power != null) metaBits.push(card.power + ' power');
+    metaBits.push(card.setLabel);
+    var thumb = card.imageUrl
+      ? '<div class="rb-thumb" data-img="' + escapeHtml(card.imageUrl) + '"><img loading="lazy" src="' + escapeHtml(card.imageUrl) + '" alt=""></div>'
+      : '<div class="rb-thumb"></div>';
+    return (
+      '<div class="rb-card">' +
+        thumb +
+        '<div class="rb-body">' +
+          '<div class="rb-top">' +
+            '<span class="rb-cost">' + (card.energy != null ? card.energy : '—') + '</span>' +
+            '<span class="rb-name">' + escapeHtml(card.name) + '</span>' +
+            '<span class="rb-badges">' + badges + '</span>' +
+          '</div>' +
+          '<div class="rb-meta">' + escapeHtml(metaBits.join(' · ')) + '</div>' +
+          '<div class="rb-text">' + card.html + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function render() {
+    var resultsEl = document.getElementById('results');
+    var total = 0;
+    var html = '';
+    DOMAIN_ORDER.forEach(function (domain) {
+      if (!state.domains.has(domain)) return;
+      var cards = allCards.filter(function (c) { return c.domains.indexOf(domain) !== -1 && cardMatches(c); });
+      if (!cards.length) return;
+      total += cards.length;
+      html += '<section class="domain-section">' +
+        '<h2 class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')"><span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span></h2>' +
+        '<div class="card-grid">' + cards.map(renderCard).join('') + '</div>' +
+      '</section>';
+    });
+    resultsEl.innerHTML = html || '<p class="status-msg">No cards match the current filters.</p>';
+    document.getElementById('resultCount').textContent = total + ' card' + (total !== 1 ? 's' : '') + ' shown (domains counted once per matching color)';
+  }
+
+  function buildDomainChips() {
+    var wrap = document.getElementById('domainChips');
+    DOMAIN_ORDER.forEach(function (domain) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip active';
+      btn.style.setProperty('--dot', 'var(' + DOMAIN_VAR[domain] + ')');
+      btn.innerHTML = '<span class="dot"></span>' + domain;
+      btn.addEventListener('click', function () {
+        if (state.domains.has(domain)) { state.domains.delete(domain); btn.classList.remove('active'); }
+        else { state.domains.add(domain); btn.classList.add('active'); }
+        document.getElementById('domainAll').classList.toggle('active', state.domains.size === DOMAIN_ORDER.length);
+        render();
+      });
+      wrap.appendChild(btn);
+    });
+    document.getElementById('domainAll').addEventListener('click', function () {
+      state.domains = new Set(DOMAIN_ORDER);
+      Array.prototype.forEach.call(wrap.children, function (c) { c.classList.add('active'); });
+      this.classList.add('active');
+      render();
+    });
+  }
+
+  function updateCostBar() {
+    var min = +document.getElementById('costMin').value;
+    var max = +document.getElementById('costMax').value;
+    if (min > max) { var t = min; min = max; max = t; }
+    state.costMin = min;
+    state.costMax = max;
+    var lo = (min / 8) * 100, hi = (max / 8) * 100;
+    var bar = document.getElementById('costRangeBar');
+    bar.style.left = lo + '%';
+    bar.style.width = (hi - lo) + '%';
+    document.getElementById('costReadout').textContent = min + ' – ' + max;
+  }
+
+  function initControls() {
+    buildDomainChips();
+
+    var chipAction = document.getElementById('chipAction');
+    var chipReaction = document.getElementById('chipReaction');
+    chipAction.addEventListener('click', function () {
+      state.action = !state.action;
+      chipAction.classList.toggle('active', state.action);
+      render();
+    });
+    chipReaction.addEventListener('click', function () {
+      state.reaction = !state.reaction;
+      chipReaction.classList.toggle('active', state.reaction);
+      render();
+    });
+
+    var costMin = document.getElementById('costMin');
+    var costMax = document.getElementById('costMax');
+    costMin.addEventListener('input', function () { updateCostBar(); render(); });
+    costMax.addEventListener('input', function () { updateCostBar(); render(); });
+    updateCostBar();
+
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      state.domains = new Set(DOMAIN_ORDER);
+      state.action = true;
+      state.reaction = true;
+      costMin.value = 0;
+      costMax.value = 8;
+      updateCostBar();
+      document.getElementById('domainAll').classList.add('active');
+      Array.prototype.forEach.call(document.getElementById('domainChips').children, function (c) { c.classList.add('active'); });
+      chipAction.classList.add('active');
+      chipReaction.classList.add('active');
+      render();
+    });
+
+    var lightbox = document.getElementById('lightbox');
+    document.getElementById('results').addEventListener('click', function (e) {
+      var thumb = e.target.closest('.rb-thumb');
+      if (!thumb || !thumb.dataset.img) return;
+      lightbox.innerHTML = '<img src="' + thumb.dataset.img + '" alt="">';
+      lightbox.hidden = false;
+    });
+    lightbox.addEventListener('click', function () { lightbox.hidden = true; });
+  }
+
+  function init() {
+    initControls();
+    fetch(DB_URL)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (raw) {
+        allCards = dedupeAndFilter(raw);
+        document.getElementById('statusMsg').hidden = true;
+        document.getElementById('controls').hidden = false;
+        render();
+      })
+      .catch(function (err) {
+        document.getElementById('statusMsg').textContent = 'Could not load card data: ' + err.message + '. Try refreshing the page.';
+      });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+<script src="../nav.js"></script>
+</body>
+</html>
