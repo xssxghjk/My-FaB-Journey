@@ -105,6 +105,18 @@
     .rb-select:focus { outline: none; border-color: var(--accent); }
     .vs-divider { flex-shrink: 0; color: var(--muted-dim); font-style: italic; font-size: 0.85rem; }
 
+    .color-chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .color-chip {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.4rem 0.8rem; border-radius: 20px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2); cursor: pointer; font-family: 'DM Serif Text', Georgia, serif;
+      font-size: 0.8rem; transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .color-chip:hover { border-color: var(--muted-dim); }
+    .color-chip.active { color: var(--text); border-color: var(--accent); background: var(--accent-bg); }
+    .color-chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
     .reset-btn {
       margin-left: auto; padding: 0.4rem 0.9rem; background: transparent;
       border: 1px solid var(--border2); color: var(--muted); border-radius: 20px;
@@ -245,31 +257,25 @@
 <div class="page">
   <header class="page-header">
     <h1 class="page-title">Riftbound Interaction Finder</h1>
-    <p class="page-subtitle">Pick two colors, or a leader, to see every Action / Reaction / Hidden card you could be holding up during a game — grouped by Energy cost so you can scan it fast. Card data pulled live from the official Riftbound card database.</p>
+    <p class="page-subtitle">Pick a leader, or one to six colors, to see every Action / Reaction / Hidden card you could be holding up during a game — grouped by Energy cost so you can scan it fast. Card data pulled live from the official Riftbound card database.</p>
   </header>
 
   <div class="mode-toggle">
-    <button class="mode-btn active" id="modeColors" type="button">By Colors</button>
-    <button class="mode-btn" id="modeLeader" type="button">By Leader</button>
+    <button class="mode-btn active" id="modeLeader" type="button">By Hero</button>
+    <button class="mode-btn" id="modeColors" type="button">By Colors</button>
   </div>
 
   <div class="controls">
-    <div class="control-row" id="colorControls">
-      <span class="control-label">Two colors</span>
-      <select class="rb-select" id="colorA">
-        <option value="">Color A…</option>
-      </select>
-      <span class="vs-divider">+</span>
-      <select class="rb-select" id="colorB">
-        <option value="">Color B…</option>
-      </select>
-    </div>
-    <div class="control-row" id="leaderControls" hidden>
+    <div class="control-row" id="leaderControls">
       <span class="control-label">Leader</span>
       <div class="leader-search-wrap">
         <input type="text" class="rb-select leader-search-input" id="leaderSearch" placeholder="Search leaders… (e.g. Ashe, Renekton, Yordle)" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="leaderDropdown">
         <div class="leader-dropdown" id="leaderDropdown" role="listbox" hidden></div>
       </div>
+    </div>
+    <div class="control-row" id="colorControls" hidden>
+      <span class="control-label">Colors (pick 1–6)</span>
+      <div class="color-chip-group" id="colorChips"></div>
     </div>
     <div class="control-row">
       <label class="staples-toggle">
@@ -319,8 +325,8 @@
   var interactionCards = [];  // general pool: non-Legend, non-Signature cards carrying Action/Reaction/Hidden text
   var leaders = [];           // { id, champion, title, label, search, domains, imageUrl, signatureCards }
 
-  var mode = 'colors'; // 'colors' | 'leader'
-  var state = { colorA: '', colorB: '', leaderId: '', filterStaples: true };
+  var mode = 'leader'; // 'colors' | 'leader'
+  var state = { colors: [], leaderId: '', filterStaples: true };
 
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -511,13 +517,12 @@
     var total = 0;
 
     if (mode === 'colors') {
-      if (!state.colorA || !state.colorB) {
-        resultsEl.innerHTML = '<p class="status-msg">Select two colors above to see cards.</p>';
+      if (!state.colors.length) {
+        resultsEl.innerHTML = '<p class="status-msg">Select at least one color above to see cards.</p>';
         document.getElementById('resultCount').textContent = '';
         return;
       }
-      var colors = [state.colorA, state.colorB];
-      var pool = interactionCards.filter(function (c) { return cardFitsColors(c, colors); });
+      var pool = interactionCards.filter(function (c) { return cardFitsColors(c, state.colors); });
       if (state.filterStaples) pool = pool.filter(isStaple);
       total = pool.length;
       html = pool.length ? renderGroups(pool) : '<p class="status-msg">No cards found for this selection.</p>';
@@ -551,21 +556,27 @@
     document.getElementById('resultCount').textContent = total + ' card' + (total !== 1 ? 's' : '') + ' shown';
   }
 
-  function rebuildColorSelects() {
-    ['colorA', 'colorB'].forEach(function (id) {
-      var otherVal = id === 'colorA' ? state.colorB : state.colorA;
-      var sel = document.getElementById(id);
-      var current = sel.value;
-      sel.innerHTML = '<option value="">Color ' + (id === 'colorA' ? 'A' : 'B') + '…</option>';
-      COLOR_DOMAINS.forEach(function (d) {
-        if (d === otherVal) return;
-        var opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        sel.appendChild(opt);
-      });
-      sel.value = current === otherVal ? '' : current;
+  function buildColorChips() {
+    var el = document.getElementById('colorChips');
+    el.innerHTML = COLOR_DOMAINS.map(function (d) {
+      return '<button type="button" class="color-chip" data-color="' + d + '">' +
+        '<span class="color-chip-dot" style="background:var(' + DOMAIN_VAR[d] + ')"></span>' + d +
+      '</button>';
+    }).join('');
+  }
+
+  function syncColorChips() {
+    document.querySelectorAll('#colorChips .color-chip').forEach(function (btn) {
+      btn.classList.toggle('active', state.colors.indexOf(btn.dataset.color) !== -1);
     });
+  }
+
+  function toggleColor(d) {
+    var i = state.colors.indexOf(d);
+    if (i === -1) state.colors.push(d);
+    else state.colors.splice(i, 1);
+    syncColorChips();
+    render();
   }
 
   function buildColorLegend() {
@@ -652,15 +663,10 @@
     document.getElementById('modeColors').addEventListener('click', function () { setMode('colors'); });
     document.getElementById('modeLeader').addEventListener('click', function () { setMode('leader'); });
 
-    document.getElementById('colorA').addEventListener('change', function (e) {
-      state.colorA = e.target.value;
-      rebuildColorSelects();
-      render();
-    });
-    document.getElementById('colorB').addEventListener('change', function (e) {
-      state.colorB = e.target.value;
-      rebuildColorSelects();
-      render();
+    document.getElementById('colorChips').addEventListener('click', function (e) {
+      var chip = e.target.closest('.color-chip[data-color]');
+      if (!chip) return;
+      toggleColor(chip.dataset.color);
     });
 
     initLeaderSearch();
@@ -671,13 +677,11 @@
     });
 
     document.getElementById('resetBtn').addEventListener('click', function () {
-      state = { colorA: '', colorB: '', leaderId: '', filterStaples: true };
-      document.getElementById('colorA').value = '';
-      document.getElementById('colorB').value = '';
+      state = { colors: [], leaderId: '', filterStaples: true };
       document.getElementById('leaderSearch').value = '';
       document.getElementById('staplesFilter').checked = true;
       closeLeaderDropdown();
-      rebuildColorSelects();
+      syncColorChips();
       render();
     });
 
@@ -690,7 +694,7 @@
     });
     lightbox.addEventListener('click', function () { lightbox.hidden = true; });
 
-    rebuildColorSelects();
+    buildColorChips();
     buildColorLegend();
   }
 
