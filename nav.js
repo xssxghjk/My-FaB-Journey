@@ -105,7 +105,9 @@
       label: 'Riftbound',
       links: [
         { key: 'riftbound-cheatsheet', href: '../riftbound-cheatsheet/', text: 'Action/Reaction Cheat Sheet',
-          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' }
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { key: 'riftbound-interaction-finder', href: '../riftbound-interaction-finder/', text: 'Interaction Finder',
+          icon: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="7" r="3.2" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="7" r="3.2" stroke="currentColor" stroke-width="1.3"/></svg>' }
       ]
     },
     {
@@ -125,6 +127,7 @@
     if (/\/fab-tournament(\/|$)/.test(p))          return 'tournament';
     if (/\/fab-draft-visualizer(\/|$)/.test(p))    return 'draft-visualizer';
     if (/\/riftbound-cheatsheet(\/|$)/.test(p))    return 'riftbound-cheatsheet';
+    if (/\/riftbound-interaction-finder(\/|$)/.test(p)) return 'riftbound-interaction-finder';
     return null;
   }
 
