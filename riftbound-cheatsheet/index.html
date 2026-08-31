@@ -69,17 +69,6 @@
       line-height: 1;
       margin-bottom: 0.6rem;
     }
-    .page-subtitle { color: var(--muted); font-size: 0.92rem; font-style: italic; max-width: 640px; }
-
-    .speed-legend { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; font-size: 0.78rem; color: var(--muted2); font-style: italic; }
-    .speed-legend b { font-style: normal; }
-    .speed-legend .sl-action b { color: var(--action-color); }
-    .speed-legend .sl-reaction b { color: var(--reaction-color); }
-    .speed-legend .sl-hidden b { color: var(--hidden-color); }
-
-    .source-note { margin-top: 0.9rem; font-size: 0.7rem; color: var(--muted-dim); font-style: italic; }
-    .source-note a { color: var(--muted); }
-
     /* ── Controls ── */
     .controls {
       border: 1px solid var(--border);
@@ -170,7 +159,7 @@
     .status-msg { padding: 3rem 1rem; text-align: center; color: var(--muted); font-size: 0.9rem; font-style: italic; }
 
     /* ── Domain sections ── */
-    .domain-section { margin-bottom: 2.25rem; }
+    .domain-section { margin-bottom: 1.25rem; }
     .domain-heading {
       display: flex; align-items: center; gap: 0.6rem;
       font-family: 'Cormorant Garamond', Georgia, serif;
@@ -178,7 +167,12 @@
       padding-bottom: 0.5rem; margin-bottom: 0.9rem;
       border-bottom: 1px solid var(--border);
       color: var(--dom, var(--text));
+      cursor: pointer; user-select: none;
+      list-style: none;
     }
+    .domain-heading::-webkit-details-marker { display: none; }
+    .domain-heading .caret { flex-shrink: 0; color: var(--muted); transition: transform 0.15s; width: 10px; height: 10px; }
+    .domain-section[open] .domain-heading .caret { transform: rotate(90deg); }
     .domain-heading .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--dom, var(--accent)); flex-shrink: 0; box-shadow: 0 0 8px color-mix(in srgb, var(--dom, var(--accent)) 60%, transparent); }
     .domain-heading .count { margin-left: auto; font-family: 'DM Serif Text', Georgia, serif; font-size: 0.72rem; color: var(--muted-dim); font-style: italic; }
 
@@ -232,13 +226,6 @@
 <div class="page">
   <header class="page-header">
     <h1 class="page-title">Riftbound Cheat Sheet</h1>
-    <p class="page-subtitle">Every Action and Reaction card in Riftbound, grouped by domain — filter by cost to drill in your outs and memorize what each color can do at instant speed.</p>
-    <div class="speed-legend">
-      <span class="sl-action"><b>Action</b> — playable on your turn or in a showdown.</span>
-      <span class="sl-reaction"><b>Reaction</b> — playable any time, even on your opponent's turn.</span>
-      <span class="sl-hidden"><b>Hidden</b> — play face-down now, flip and resolve later for free.</span>
-    </div>
-    <p class="source-note">Card data from the community <a href="https://riftcodex.com/" target="_blank" rel="noopener">Riftcodex</a> dataset. Riftbound is a trademark of Riot Games; this is an unofficial fan tool, not affiliated with or endorsed by Riot Games.</p>
   </header>
 
   <details class="controls" id="controls" hidden>
@@ -302,7 +289,8 @@
     speeds: { action: false, reaction: false, hidden: false },
     includeLegends: false,
     costMin: 0,
-    costMax: 8
+    costMax: 8,
+    collapsedDomains: new Set()
   };
 
   function escapeHtml(s) {
@@ -422,10 +410,14 @@
         var cards = allCards.filter(function (c) { return c.domains.indexOf(domain) !== -1 && cardMatches(c); });
         if (!cards.length) return;
         total += cards.length;
-        html += '<section class="domain-section">' +
-          '<h2 class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')"><span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span></h2>' +
+        var open = state.collapsedDomains.has(domain) ? '' : ' open';
+        html += '<details class="domain-section" data-domain="' + domain + '"' + open + '>' +
+          '<summary class="domain-heading" style="--dom:var(' + DOMAIN_VAR[domain] + ')">' +
+            '<svg class="caret" viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '<span class="dot"></span>' + domain + '<span class="count">' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + '</span>' +
+          '</summary>' +
           '<div class="card-grid">' + cards.map(renderCard).join('') + '</div>' +
-        '</section>';
+        '</details>';
       });
     }
     if (!state.domains.size) {
@@ -434,6 +426,12 @@
       resultsEl.innerHTML = '<p class="status-msg">Select Action, Reaction, or Hidden above to see cards.</p>';
     } else {
       resultsEl.innerHTML = html || '<p class="status-msg">No cards match the current filters.</p>';
+      Array.prototype.forEach.call(resultsEl.querySelectorAll('.domain-section'), function (det) {
+        det.addEventListener('toggle', function () {
+          if (det.open) state.collapsedDomains.delete(det.dataset.domain);
+          else state.collapsedDomains.add(det.dataset.domain);
+        });
+      });
     }
     document.getElementById('resultCount').textContent = total + ' card' + (total !== 1 ? 's' : '') + ' shown (domains counted once per matching color)';
   }
