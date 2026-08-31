@@ -115,6 +115,13 @@
 
     .result-count { font-size: 0.72rem; color: var(--muted-dim); font-style: italic; margin-top: 0.7rem; }
 
+    .staples-toggle {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; color: var(--muted2); font-style: italic;
+      cursor: pointer; user-select: none;
+    }
+    .staples-toggle input { accent-color: var(--accent); cursor: pointer; }
+
     /* ── Loading / empty ── */
     .status-msg { padding: 3rem 1rem; text-align: center; color: var(--muted); font-size: 0.9rem; font-style: italic; }
 
@@ -265,6 +272,10 @@
       </div>
     </div>
     <div class="control-row">
+      <label class="staples-toggle">
+        <input type="checkbox" id="staplesFilter" checked>
+        Filter staples
+      </label>
       <button class="reset-btn" id="resetBtn" type="button">Reset</button>
     </div>
     <div class="result-count" id="resultCount"></div>
@@ -284,6 +295,23 @@
 
   var DB_URL = 'https://raw.githubusercontent.com/azoni/riftbound-card-bot/main/data/cards.json';
 
+  var STAPLE_NAMES = [
+    'Ki Barrier', 'Smoke Screen', 'Wages of Pain', 'Deadly Flourish', 'Decree of Unity',
+    'Hidden Blade', 'Salvage', 'Deathgrip', 'Retreat', 'Sprite Burst', 'Turn to Dust',
+    'Harnessed Dragon', 'Ashe, Focused', 'Sacrifice', 'Unchecked Power', 'Eclipse',
+    'Vi, Peacekeeper', 'Cull the Weak', 'Time Warp', 'Sprite Fountain', 'Perfect Execution',
+    'Temporal Breach', 'Rebuke', 'Bellows Breath', 'Stupefy', 'Hextech Ray',
+    'Against the Odds', 'Long Sword', 'Pyke, Dockside Butcher', 'Thousand-Tailed Watcher',
+    'Inferna', 'Falling Star', 'Brittle Steel', 'Cleave', 'Decree of Rage', 'Blood Rush',
+    'Darius, Trifarian', 'Flash', "Kha'Zix, Mutating Horror", 'Singularity', 'Gust',
+    'Hard Bargain', 'Abandon', 'Tideturner', 'Switcheroo', 'En Garde', 'Charm', 'Defy',
+    'Not So Fast', 'Decree of Focus', 'First Mate', 'Fizz, Trickster', 'Ride the Wind',
+    'Star-Crossed', 'Crumbling Sands', 'Back Off', "Zhonya's Hourglass", 'Discipline',
+    'Rengar, Trophy Hunter', 'Rampage', 'Punch First'
+  ];
+  var STAPLE_SET = STAPLE_NAMES.reduce(function (set, name) { set[name.toLowerCase()] = true; return set; }, {});
+  function isStaple(card) { return !!STAPLE_SET[(card.name || '').toLowerCase()]; }
+
   var DOMAIN_ORDER = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
   var DOMAIN_VAR = { Fury: '--dom-fury', Calm: '--dom-calm', Mind: '--dom-mind', Body: '--dom-body', Chaos: '--dom-chaos', Order: '--dom-order', Colorless: '--dom-colorless' };
   var COLOR_DOMAINS = DOMAIN_ORDER;
@@ -292,7 +320,7 @@
   var leaders = [];           // { id, champion, title, label, search, domains, imageUrl, signatureCards }
 
   var mode = 'colors'; // 'colors' | 'leader'
-  var state = { colorA: '', colorB: '', leaderId: '' };
+  var state = { colorA: '', colorB: '', leaderId: '', filterStaples: true };
 
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -490,6 +518,7 @@
       }
       var colors = [state.colorA, state.colorB];
       var pool = interactionCards.filter(function (c) { return cardFitsColors(c, colors); });
+      if (state.filterStaples) pool = pool.filter(isStaple);
       total = pool.length;
       html = pool.length ? renderGroups(pool) : '<p class="status-msg">No cards found for this selection.</p>';
     } else {
@@ -503,6 +532,7 @@
 
       var sigCards = leader.signatureCards;
       var mainPool = interactionCards.filter(function (c) { return cardFitsColors(c, leader.domains); });
+      if (state.filterStaples) mainPool = mainPool.filter(isStaple);
       total = sigCards.length + mainPool.length;
 
       var sigHtml = '<div class="sig-section">' +
@@ -635,11 +665,17 @@
 
     initLeaderSearch();
 
+    document.getElementById('staplesFilter').addEventListener('change', function (e) {
+      state.filterStaples = e.target.checked;
+      render();
+    });
+
     document.getElementById('resetBtn').addEventListener('click', function () {
-      state = { colorA: '', colorB: '', leaderId: '' };
+      state = { colorA: '', colorB: '', leaderId: '', filterStaples: true };
       document.getElementById('colorA').value = '';
       document.getElementById('colorB').value = '';
       document.getElementById('leaderSearch').value = '';
+      document.getElementById('staplesFilter').checked = true;
       closeLeaderDropdown();
       rebuildColorSelects();
       render();
