@@ -151,8 +151,6 @@
       border-left: 3px solid var(--dom, var(--accent));
       border-radius: 2px; padding: 0.7rem 0.8rem;
     }
-    .rb-thumb { flex-shrink: 0; width: 48px; height: 67px; border-radius: 3px; overflow: hidden; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; }
-    .rb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .rb-body { flex: 1; min-width: 0; }
     .rb-top { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
     .rb-cost {
@@ -169,24 +167,13 @@
     .rb-badge.action { color: var(--action-color); border: 1px solid color-mix(in srgb, var(--action-color) 45%, transparent); background: color-mix(in srgb, var(--action-color) 12%, transparent); }
     .rb-badge.reaction { color: var(--reaction-color); border: 1px solid color-mix(in srgb, var(--reaction-color) 45%, transparent); background: color-mix(in srgb, var(--reaction-color) 12%, transparent); }
     .rb-badge.hidden { color: var(--hidden-color); border: 1px solid color-mix(in srgb, var(--hidden-color) 45%, transparent); background: color-mix(in srgb, var(--hidden-color) 12%, transparent); }
-    .rb-meta { font-size: 0.68rem; color: var(--muted-dim); margin-bottom: 0.35rem; }
-    .rb-text { font-size: 0.78rem; color: var(--muted2); line-height: 1.55; }
-    .rb-tok { display: inline-flex; align-items: center; gap: 1px; font-size: 0.72rem; color: var(--accent); }
-    .rb-tok-rune { width: 8px; height: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; }
-    .rb-tok-rune-rainbow { background: conic-gradient(var(--dom-fury), var(--dom-order), var(--dom-calm), var(--dom-mind), var(--dom-chaos), var(--dom-body), var(--dom-fury)); }
-    .rb-inline-action { color: var(--action-color); }
-    .rb-inline-reaction { color: var(--reaction-color); }
-    .rb-inline-hidden { color: var(--hidden-color); }
-    .rb-kw { color: var(--muted2); font-weight: 400; }
+    .rb-badge.kw { color: var(--muted2); border: 1px solid var(--border2); background: var(--surface2); }
+    .rb-meta { font-size: 0.68rem; color: var(--muted-dim); }
 
     /* ── Legend footer ── */
     .color-legend { display: flex; flex-wrap: wrap; gap: 0.9rem 1.4rem; margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
     .color-legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--muted2); }
     .color-legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-
-    /* ── Lightbox ── */
-    .lightbox { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; padding: 2rem; cursor: zoom-out; }
-    .lightbox img { max-width: min(420px, 90vw); max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
 
     @media (max-width: 600px) {
       .page { padding: 2rem 1.25rem 4rem; }
@@ -231,26 +218,90 @@
     <div class="result-count" id="resultCount"></div>
   </div>
 
-  <div id="statusMsg" class="status-msg">Fetching Riftbound card data…</div>
   <div id="results"></div>
 
   <div class="color-legend" id="colorLegend"></div>
 </div>
 
-<div class="lightbox" id="lightbox" hidden></div>
-
 <script>
 (function () {
   'use strict';
 
-  var DB_URL = 'https://raw.githubusercontent.com/azoni/riftbound-card-bot/main/data/cards.json';
+  // Curated pool: this tool intentionally does not draw from the full card
+  // database. Only these cards (plus each leader's own signature card,
+  // pinned when that leader is selected) are ever shown.
+  var CARD_POOL = [
+    {"name":"Ki Barrier","cost":2,"domain":"order","type":"spell","kw":["Reaction"]},
+    {"name":"Smoke Screen","cost":2,"domain":"mind","type":"spell","kw":["Reaction"]},
+    {"name":"Wages of Pain","cost":3,"domain":"neutral","type":"spell","kw":["Hidden","Action"]},
+    {"name":"Deadly Flourish","cost":4,"domain":"neutral","type":"spell","kw":[]},
+    {"name":"Decree of Unity","cost":2,"domain":"order","type":"spell","kw":[]},
+    {"name":"Hidden Blade","cost":2,"domain":"neutral","type":"spell","kw":["Hidden","Action"]},
+    {"name":"Salvage","cost":2,"domain":"order","type":"spell","kw":["Action"]},
+    {"name":"Deathgrip","cost":2,"domain":"order","type":"spell","kw":["Reaction"]},
+    {"name":"Retreat","cost":1,"domain":"neutral","type":"spell","kw":["Reaction"]},
+    {"name":"Sprite Burst","cost":5,"domain":"neutral","type":"spell","kw":[]},
+    {"name":"Turn to Dust","cost":2,"domain":"neutral","type":"spell","kw":[]},
+    {"name":"Harnessed Dragon","cost":8,"domain":"order","type":"unit","kw":[]},
+    {"name":"Ashe, Focused","cost":5,"domain":"order","type":"unit","kw":[],"leader":"ashe"},
+    {"name":"Sacrifice","cost":1,"domain":"neutral","type":"spell","kw":["Reaction"]},
+    {"name":"Unchecked Power","cost":7,"domain":"mind","type":"spell","kw":[]},
+    {"name":"Eclipse","cost":3,"domain":"neutral","type":"spell","kw":["Reaction"]},
+    {"name":"Vi, Peacekeeper","cost":5,"domain":"order","type":"unit","kw":[],"leader":"vi"},
+    {"name":"Cull the Weak","cost":2,"domain":"neutral","type":"spell","kw":[]},
+    {"name":"Time Warp","cost":10,"domain":"mind","type":"spell","kw":[]},
+    {"name":"Sprite Fountain","cost":2,"domain":"mind","type":"gear","kw":[]},
+    {"name":"Perfect Execution","cost":3,"domain":"fury","type":"spell","kw":["Flow"]},
+    {"name":"Temporal Breach","cost":2,"domain":"mind","type":"spell","kw":["Hidden"]},
+    {"name":"Rebuke","cost":2,"domain":"chaos","type":"spell","kw":["Action"]},
+    {"name":"Bellows Breath","cost":1,"domain":"mind","type":"spell","kw":["Action","Repeat"]},
+    {"name":"Stupefy","cost":1,"domain":"neutral","type":"spell","kw":["Reaction"]},
+    {"name":"Hextech Ray","cost":1,"domain":"fury","type":"spell","kw":["Action"]},
+    {"name":"Against the Odds","cost":2,"domain":"fury","type":"spell","kw":["Reaction"]},
+    {"name":"Long Sword","cost":2,"domain":"fury","type":"gear","kw":["Reaction"]},
+    {"name":"Pyke, Dockside Butcher","cost":3,"domain":"fury","type":"unit","kw":["Hidden"],"leader":"pyke"},
+    {"name":"Thousand-Tailed Watcher","cost":7,"domain":"neutral","type":"unit","kw":[]},
+    {"name":"Inferna","cost":2,"domain":"fury","type":"unit","kw":["Ambush"]},
+    {"name":"Falling Star","cost":2,"domain":"fury","type":"spell","kw":[]},
+    {"name":"Brittle Steel","cost":2,"domain":"fury","type":"spell","kw":["Flow"]},
+    {"name":"Cleave","cost":1,"domain":"fury","type":"spell","kw":["Action"]},
+    {"name":"Decree of Rage","cost":1,"domain":"fury","type":"spell","kw":["Action"]},
+    {"name":"Blood Rush","cost":1,"domain":"fury","type":"spell","kw":["Action","Repeat"]},
+    {"name":"Darius, Trifarian","cost":5,"domain":"fury","type":"unit","kw":[],"leader":"darius"},
+    {"name":"Flash","cost":2,"domain":"chaos","type":"spell","kw":["Reaction"]},
+    {"name":"Kha'Zix, Mutating Horror","cost":4,"domain":"chaos","type":"unit","kw":["Ambush"],"leader":"khazix"},
+    {"name":"Singularity","cost":6,"domain":"neutral","type":"spell","kw":[]},
+    {"name":"Gust","cost":1,"domain":"chaos","type":"spell","kw":["Reaction"]},
+    {"name":"Hard Bargain","cost":2,"domain":"chaos","type":"spell","kw":["Reaction","Repeat"]},
+    {"name":"Abandon","cost":2,"domain":"chaos","type":"spell","kw":["Reaction"]},
+    {"name":"Tideturner","cost":2,"domain":"chaos","type":"unit","kw":["Hidden"]},
+    {"name":"Switcheroo","cost":2,"domain":"chaos","type":"spell","kw":["Hidden","Action"]},
+    {"name":"En Garde","cost":1,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"Charm","cost":1,"domain":"calm","type":"spell","kw":[]},
+    {"name":"Defy","cost":1,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"Not So Fast","cost":2,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"Decree of Focus","cost":1,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"First Mate","cost":3,"domain":"body","type":"unit","kw":[]},
+    {"name":"Fizz, Trickster","cost":3,"domain":"chaos","type":"unit","kw":[],"leader":"fizz"},
+    {"name":"Ride the Wind","cost":2,"domain":"chaos","type":"spell","kw":["Action"]},
+    {"name":"Star-Crossed","cost":3,"domain":"chaos","type":"spell","kw":["Reaction"]},
+    {"name":"Crumbling Sands","cost":1,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"Back Off","cost":3,"domain":"calm","type":"spell","kw":["Hidden","Action"]},
+    {"name":"Zhonya's Hourglass","cost":2,"domain":"calm","type":"gear","kw":["Hidden"]},
+    {"name":"Discipline","cost":2,"domain":"calm","type":"spell","kw":["Reaction"]},
+    {"name":"Rengar, Trophy Hunter","cost":5,"domain":"body","type":"unit","kw":["Ambush"],"leader":"rengar"},
+    {"name":"Rampage","cost":3,"domain":"body","type":"spell","kw":[]},
+    {"name":"Punch First","cost":1,"domain":"body","type":"spell","kw":["Action"]}
+  ];
 
   var DOMAIN_ORDER = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order', 'Colorless'];
   var COLOR_DOMAINS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
   var DOMAIN_VAR = { Fury: '--dom-fury', Calm: '--dom-calm', Mind: '--dom-mind', Body: '--dom-body', Chaos: '--dom-chaos', Order: '--dom-order', Colorless: '--dom-colorless' };
+  var DOMAIN_KEY = { fury: 'Fury', calm: 'Calm', mind: 'Mind', body: 'Body', chaos: 'Chaos', order: 'Order', neutral: 'Colorless' };
+  var INTERACTION_KW = ['Action', 'Reaction', 'Hidden'];
 
-  var interactionCards = [];  // non-Legend cards carrying [Action]/[Reaction]/[Hidden]
-  var leaders = [];           // { id, champion, label, domains: [d1,d2], legendCards: [...] }
+  var interactionCards = [];  // pool cards (excluding leader cards) carrying Action/Reaction/Hidden
+  var leaders = [];           // { id, champion, label, domains: [...], signatureCards: [...] }
 
   var mode = 'colors'; // 'colors' | 'leader'
   var state = { colorA: '', colorB: '', leaderId: '' };
@@ -261,56 +312,31 @@
 
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  function slugify(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
-
-  function formatText(text) {
-    if (!text) return '';
-    var t = escapeHtml(text);
-    t = t.replace(/:rb_energy_(\d+):/g, function (_, n) { return '<span class="rb-tok">' + n + '⚡</span>'; });
-    t = t.replace(/:rb_might:/g, '<span class="rb-tok">⚔</span>');
-    t = t.replace(/:rb_exhaust:/g, '<span class="rb-tok">↻</span>');
-    t = t.replace(/:rb_rune_rainbow:/g, '<span class="rb-tok-rune rb-tok-rune-rainbow" title="Any rune"></span>');
-    t = t.replace(/:rb_rune_(fury|calm|mind|body|chaos|order):/g, function (_, d) {
-      return '<span class="rb-tok-rune" style="background:var(' + DOMAIN_VAR[cap(d)] + ')" title="' + cap(d) + ' rune"></span>';
-    });
-    t = t.replace(/\[(Action|Reaction|Hidden)\]/g, function (_, k) { return '<b class="rb-inline-' + k.toLowerCase() + '">[' + k + ']</b>'; });
-    t = t.replace(/\[(?!Action\]|Reaction\]|Hidden\])([A-Za-z][A-Za-z '\-]*?)\]/g, '<b class="rb-kw">[$1]</b>');
-    t = t.replace(/\n/g, '<br>');
-    return t;
-  }
-
   function normalizeCard(c) {
-    var text = c.text || '';
-    var domains = (c.domains || []).filter(function (d) { return DOMAIN_ORDER.indexOf(d) !== -1; });
+    var kw = c.kw || [];
+    var domainKey = DOMAIN_KEY[c.domain] || 'Colorless';
     return {
-      name: c.baseName,
+      name: c.name,
       type: c.type,
-      supertype: c.supertype,
-      domains: domains,
-      requiredDomains: domains.filter(function (d) { return d !== 'Colorless'; }),
-      tags: c.tags || [],
-      energy: c.energy,
-      might: c.might,
-      power: c.power,
-      hasAction: text.indexOf('[Action]') !== -1,
-      hasReaction: text.indexOf('[Reaction]') !== -1,
-      hasHidden: text.indexOf('[Hidden]') !== -1,
-      html: formatText(text),
-      imageUrl: c.imageUrl,
-      rarity: c.rarity,
-      setLabel: c.setLabel
+      domainKey: domainKey,
+      requiredDomain: c.domain === 'neutral' ? null : domainKey,
+      cost: c.cost,
+      hasAction: kw.indexOf('Action') !== -1,
+      hasReaction: kw.indexOf('Reaction') !== -1,
+      hasHidden: kw.indexOf('Hidden') !== -1,
+      otherKw: kw.filter(function (k) { return INTERACTION_KW.indexOf(k) === -1; }),
+      leader: c.leader || null
     };
   }
 
-  // A card fits a set of colors if every domain pip it actually costs (ignoring Colorless)
-  // is among the selected colors — a dual-domain card needs BOTH domains covered.
+  // A card fits a set of colors if its domain (ignoring neutral/colorless) is among them.
   function cardFitsColors(card, colors) {
-    if (!card.requiredDomains.length) return true;
-    return card.requiredDomains.every(function (d) { return colors.indexOf(d) !== -1; });
+    if (!card.requiredDomain) return true;
+    return colors.indexOf(card.requiredDomain) !== -1;
   }
 
   function sortByCostThenName(a, b) {
-    var ea = a.energy == null ? -1 : a.energy, eb = b.energy == null ? -1 : b.energy;
+    var ea = a.cost == null ? -1 : a.cost, eb = b.cost == null ? -1 : b.cost;
     return ea - eb || a.name.localeCompare(b.name);
   }
 
@@ -318,7 +344,7 @@
     var groups = [];
     cards.slice().sort(sortByCostThenName).forEach(function (c) {
       var last = groups[groups.length - 1];
-      if (!last || last.cost !== c.energy) groups.push({ cost: c.energy, cards: [] });
+      if (!last || last.cost !== c.cost) groups.push({ cost: c.cost, cards: [] });
       groups[groups.length - 1].cards.push(c);
     });
     return groups;
@@ -329,29 +355,18 @@
     if (card.hasAction) badges += '<span class="rb-badge action">ACTION</span>';
     if (card.hasReaction) badges += '<span class="rb-badge reaction">REACTION</span>';
     if (card.hasHidden) badges += '<span class="rb-badge hidden">HIDDEN</span>';
-    var dots = (card.domains.length ? card.domains : ['Colorless']).map(function (d) {
-      return '<span class="rb-domdot" style="background:var(' + DOMAIN_VAR[d] + ')" title="' + d + '"></span>';
-    }).join('');
-    var metaBits = [card.supertype ? card.supertype + ' ' + card.type : card.type];
-    if (card.might != null) metaBits.push(card.might + ' might');
-    if (card.power != null) metaBits.push(card.power + ' power');
-    metaBits.push(card.setLabel);
-    var borderDom = card.requiredDomains[0] || 'Colorless';
-    var thumb = card.imageUrl
-      ? '<div class="rb-thumb" data-img="' + escapeHtml(card.imageUrl) + '"><img loading="lazy" src="' + escapeHtml(card.imageUrl) + '" alt=""></div>'
-      : '<div class="rb-thumb"></div>';
+    card.otherKw.forEach(function (k) { badges += '<span class="rb-badge kw">' + escapeHtml(k.toUpperCase()) + '</span>'; });
+    var dot = '<span class="rb-domdot" style="background:var(' + DOMAIN_VAR[card.domainKey] + ')" title="' + card.domainKey + '"></span>';
     return (
-      '<div class="rb-card" style="--dom:var(' + DOMAIN_VAR[borderDom] + ')">' +
-        thumb +
+      '<div class="rb-card" style="--dom:var(' + DOMAIN_VAR[card.domainKey] + ')">' +
         '<div class="rb-body">' +
           '<div class="rb-top">' +
-            '<span class="rb-cost">' + (card.energy != null ? card.energy : '—') + '</span>' +
-            '<span class="rb-domdots">' + dots + '</span>' +
+            '<span class="rb-cost">' + (card.cost != null ? card.cost : '—') + '</span>' +
+            '<span class="rb-domdots">' + dot + '</span>' +
             '<span class="rb-name">' + escapeHtml(card.name) + '</span>' +
             '<span class="rb-badges">' + badges + '</span>' +
           '</div>' +
-          '<div class="rb-meta">' + escapeHtml(metaBits.join(' · ')) + '</div>' +
-          '<div class="rb-text">' + card.html + '</div>' +
+          '<div class="rb-meta">' + escapeHtml(cap(card.type)) + '</div>' +
         '</div>' +
       '</div>'
     );
@@ -390,23 +405,16 @@
       var leader = leaders.filter(function (l) { return l.id === state.leaderId; })[0];
       if (!leader) { resultsEl.innerHTML = ''; return; }
 
-      var sigCards = leader.legendCards.concat(
-        interactionCards.filter(function (c) { return c.tags.indexOf(leader.champion) !== -1; })
-      );
-      var sigNames = {};
-      sigCards.forEach(function (c) { sigNames[c.type + '::' + c.name] = true; });
+      var sigCards = leader.signatureCards;
 
-      var mainPool = interactionCards.filter(function (c) {
-        if (sigNames[c.type + '::' + c.name]) return false;
-        return cardFitsColors(c, leader.domains);
-      });
+      var mainPool = interactionCards.filter(function (c) { return cardFitsColors(c, leader.domains); });
 
       total = sigCards.length + mainPool.length;
 
       var sigHtml = '<div class="sig-section">' +
         '<div class="sig-heading">Signature — ' + escapeHtml(leader.champion) +
           '<span class="count">' + sigCards.length + ' card' + (sigCards.length !== 1 ? 's' : '') + '</span></div>' +
-        '<p class="sig-note">' + escapeHtml(leader.champion) + '’s own card(s), plus any card tagged for them in the card data — shown regardless of Energy grouping below.</p>' +
+        '<p class="sig-note">' + escapeHtml(leader.champion) + '’s own card(s) from the curated pool — shown regardless of Energy grouping below.</p>' +
         (sigCards.length ? renderGroups(sigCards) : '<p class="status-msg" style="padding:1rem;">No signature cards found.</p>') +
         '</div>';
 
@@ -417,14 +425,6 @@
 
     document.getElementById('results').innerHTML = html;
     document.getElementById('resultCount').textContent = total + ' card' + (total !== 1 ? 's' : '') + ' shown';
-
-    var lightbox = document.getElementById('lightbox');
-    document.getElementById('results').addEventListener('click', function (e) {
-      var thumb = e.target.closest('.rb-thumb');
-      if (!thumb || !thumb.dataset.img) return;
-      lightbox.innerHTML = '<img src="' + thumb.dataset.img + '" alt="">';
-      lightbox.hidden = false;
-    });
   }
 
   function rebuildColorSelects() {
@@ -444,29 +444,18 @@
     });
   }
 
-  function buildLeaderRoster(rawLegends, allInteractionRaw) {
-    // dedupe legend printings by baseName (skip signature-art/alternate-art duplicates)
-    var best = new Map();
-    rawLegends.forEach(function (c) {
-      var score = (c.signature ? 1 : 0) + (c.alternateArt ? 1 : 0);
-      var cur = best.get(c.baseName);
-      if (!cur || score < cur.score) best.set(c.baseName, { score: score, card: normalizeCard(c) });
+  function buildLeaderRoster(leaderCards) {
+    var byId = {};
+    leaderCards.forEach(function (card) {
+      if (!byId[card.leader]) byId[card.leader] = { id: card.leader, champion: card.name.split(',')[0].trim(), domains: [], signatureCards: [] };
+      var l = byId[card.leader];
+      l.signatureCards.push(card);
+      if (card.requiredDomain && l.domains.indexOf(card.requiredDomain) === -1) l.domains.push(card.requiredDomain);
     });
-    var byChamp = {};
-    best.forEach(function (v) {
-      var card = v.card;
-      var tags = card.tags;
-      if (!tags.length) return;
-      var champion = tags[tags.length - 1];
-      if (!byChamp[champion]) byChamp[champion] = { champion: champion, domains: card.domains.slice(), legendCards: [] };
-      byChamp[champion].legendCards.push(card);
-    });
-    var roster = Object.keys(byChamp).map(function (k) { return byChamp[k]; });
+    var roster = Object.keys(byId).map(function (k) { return byId[k]; });
     roster.forEach(function (l) {
-      l.legendCards.sort(function (a, b) { return a.name.localeCompare(b.name); });
-      var rep = l.legendCards.filter(function (c) { return c.name.toLowerCase().indexOf(l.champion.toLowerCase()) === 0; })[0] || l.legendCards[0];
-      l.id = slugify(l.champion);
-      l.label = l.champion + ' — ' + l.domains.join('/') + '  (' + rep.name + ')';
+      l.signatureCards.sort(sortByCostThenName);
+      l.label = l.champion + ' — ' + (l.domains.length ? l.domains.join('/') : 'Colorless');
     });
     roster.sort(function (a, b) { return a.champion.localeCompare(b.champion); });
     return roster;
@@ -526,40 +515,21 @@
       render();
     });
 
-    var lightbox = document.getElementById('lightbox');
-    lightbox.addEventListener('click', function () { lightbox.hidden = true; });
-
     rebuildColorSelects();
     buildColorLegend();
   }
 
   function init() {
     initControls();
-    fetch(DB_URL)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (raw) {
-        var interactionBest = new Map();
-        raw.forEach(function (c) {
-          if (c.type === 'Legend') return;
-          var text = c.text || '';
-          if (text.indexOf('[Action]') === -1 && text.indexOf('[Reaction]') === -1 && text.indexOf('[Hidden]') === -1) return;
-          var score = (c.signature ? 1 : 0) + (c.alternateArt ? 1 : 0);
-          var cur = interactionBest.get(c.baseName);
-          if (!cur || score < cur.score) interactionBest.set(c.baseName, { score: score, card: c });
-        });
-        interactionCards = [];
-        interactionBest.forEach(function (v) { interactionCards.push(normalizeCard(v.card)); });
 
-        var rawLegends = raw.filter(function (c) { return c.type === 'Legend'; });
-        leaders = buildLeaderRoster(rawLegends);
-        populateLeaderSelect();
+    var cards = CARD_POOL.map(normalizeCard);
+    interactionCards = cards.filter(function (c) {
+      return !c.leader && (c.hasAction || c.hasReaction || c.hasHidden);
+    });
+    leaders = buildLeaderRoster(cards.filter(function (c) { return c.leader; }));
+    populateLeaderSelect();
 
-        document.getElementById('statusMsg').hidden = true;
-        render();
-      })
-      .catch(function (err) {
-        document.getElementById('statusMsg').textContent = 'Could not load card data: ' + err.message + '. Try refreshing the page.';
-      });
+    render();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
