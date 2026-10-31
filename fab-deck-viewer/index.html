@@ -5595,6 +5595,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
   /* ── Memory game (this deck only) ─────────────────────────────────── */
 
   let memCountPref = 10;
+  let playersPref = 1;
 
   function memCurrentDeck() {
     return loadDecks().find(d => d.id === currentDeckId) || null;
@@ -5699,6 +5700,13 @@ Header lines, section labels, and footers are ignored automatically."></textarea
           </div>
         </div>
         <div class="mem-form-group">
+          <label class="mem-form-label">Players</label>
+          <div class="mem-go-toggle">
+            <button class="mem-go-btn ${playersPref === 1 ? 'active' : ''}" id="mem-players-1" type="button">1 player</button>
+            <button class="mem-go-btn ${playersPref === 2 ? 'active' : ''}" id="mem-players-2" type="button">2 players</button>
+          </div>
+        </div>
+        <div class="mem-form-group">
           <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
           <input type="number" id="mem-count-inp" min="1" max="${maxCards}" value="${savedCount}" style="${inputStyle}" />
         </div>
@@ -5738,6 +5746,19 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       startBtn.disabled = !max || !(n >= 1 && n <= max) || !MemoryGame.validDelay(d);
     }
 
+    function bindPlayers(onChange) {
+      const one = document.getElementById('mem-players-1');
+      const two = document.getElementById('mem-players-2');
+      const set = n => {
+        playersPref = n;
+        one.classList.toggle('active', n === 1);
+        two.classList.toggle('active', n === 2);
+        onChange();
+      };
+      one.addEventListener('click', () => set(1));
+      two.addEventListener('click', () => set(2));
+    }
+    bindPlayers(() => {});
     matchupSel.addEventListener('change', () => { updateGoGroup(); updateLimits(true); });
     countInp.addEventListener('input', () => updateLimits(false));
     delayInp.addEventListener('input', () => updateLimits(false));
@@ -5750,7 +5771,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       if (!(n >= 1) || !MemoryGame.validDelay(d)) return;
       const m = getSelectedMatchup();
       memCountPref = n;
-      api.start(n, { matchupId: m ? m.id : null, goFirst: goFirst.classList.contains('active') }, d);
+      api.start(n, { matchupId: m ? m.id : null, goFirst: goFirst.classList.contains('active') }, d, playersPref);
     });
 
     updateGoGroup();

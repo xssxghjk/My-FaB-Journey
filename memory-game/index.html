@@ -22,7 +22,8 @@
       --muted-2:    #9a8a76;
     }
     body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; min-height: 100vh; }
-    .mg-page { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    .mg-page { width: 100%; max-width: 640px; min-width: 0; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    .mg-page select, .mg-page input { width: 100%; max-width: 100%; min-width: 0; }
     .mg-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.9rem; margin-bottom: 0.35rem; }
     .mg-subtitle { color: var(--muted-2); font-style: italic; font-size: 0.88rem; margin-bottom: 1.75rem; line-height: 1.5; }
     .mg-loading { color: var(--muted-2); font-style: italic; font-size: 0.9rem; text-align: center; padding: 2rem 0; }
@@ -54,6 +55,7 @@
   const setNameById = {};         // set_id -> display name
   let setsReady    = false;
   let lastSetName  = '';
+  let playersPref  = 1;
 
   const esc = MemoryGame.esc;
 
@@ -127,6 +129,13 @@
           </select>
         </div>
         <div class="mem-form-group">
+          <label class="mem-form-label">Players</label>
+          <div class="mem-go-toggle">
+            <button class="mem-go-btn ${playersPref === 1 ? 'active' : ''}" id="mem-players-1" type="button">1 player</button>
+            <button class="mem-go-btn ${playersPref === 2 ? 'active' : ''}" id="mem-players-2" type="button">2 players</button>
+          </div>
+        </div>
+        <div class="mem-form-group">
           <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
           <input type="number" id="mem-count-inp" min="1" value="10" style="${inputStyle}" />
         </div>
@@ -151,6 +160,19 @@
       startBtn.disabled = !max || !(n >= 1 && n <= max) || !MemoryGame.validDelay(d);
     }
 
+    function bindPlayers(onChange) {
+      const one = document.getElementById('mem-players-1');
+      const two = document.getElementById('mem-players-2');
+      const set = n => {
+        playersPref = n;
+        one.classList.toggle('active', n === 1);
+        two.classList.toggle('active', n === 2);
+        onChange();
+      };
+      one.addEventListener('click', () => set(1));
+      two.addEventListener('click', () => set(2));
+    }
+    bindPlayers(() => {});
     setSel.addEventListener('change', () => updateLimits(true));
     countInp.addEventListener('input', () => updateLimits(false));
     delayInp.addEventListener('input', () => updateLimits(false));
@@ -158,7 +180,7 @@
       const n = parseInt(countInp.value, 10);
       const d = parseInt(delayInp.value, 10);
       if (!setSel.value || !(n >= 1) || !MemoryGame.validDelay(d)) return;
-      api.start(n, { setId: setSel.value }, d);
+      api.start(n, { setId: setSel.value }, d, playersPref);
     });
     updateLimits(false);
   }

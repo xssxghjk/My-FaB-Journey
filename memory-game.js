@@ -2,9 +2,11 @@
  * memory-game.js — shared Memory game engine.
  *
  * Flow: memorize the cards → timer starts → the recall test unlocks when the
- * timer ends → recall → result. The active session is kept in localStorage,
- * so it survives closing or reloading the page. While a session exists, a bar
- * at the top of every page that loads this script links back to it.
+ * timer ends → recall → result. With two players the cards alternate between
+ * them while memorizing; each player then recalls their own cards in turn.
+ * The active session is kept in localStorage, so it survives closing or
+ * reloading the page. While a session exists, a bar at the top of every page
+ * that loads this script links back to it.
  *
  * Pages call MemoryGame.mount(root, { label, returnUrl, build, setupRender })
  * and supply the setup form (setupRender) and the card list (build).
@@ -25,7 +27,13 @@
   function loadSession() {
     try {
       var s = JSON.parse(localStorage.getItem(SESSION_KEY));
-      return s && s.phase && Array.isArray(s.sequence) && s.sequence.length ? s : null;
+      if (!s || !s.phase || !Array.isArray(s.sequence) || !s.sequence.length) return null;
+      // Sessions saved by earlier versions: one player, recall counted in sequence order.
+      s.players = s.players === 2 ? 2 : 1;
+      if (typeof s.recallStep !== 'number') s.recallStep = s.recallIndex || 0;
+      if (typeof s.ackStep !== 'number') s.ackStep = -1;
+      if (!Array.isArray(s.recallAnswers)) s.recallAnswers = [];
+      return s;
     } catch (e) { return null; }
   }
   function saveSession() {
@@ -66,8 +74,25 @@
     }
     return a.slice(0, Math.min(n, a.length));
   }
-  function sessionLabel(s) { return s.label || 'Memory test'; }
+  function sessionLabel(s) {
+    return (s.label || 'Memory test') + (s.players > 1 ? ' · 2 players' : '');
+  }
   function sessionReturnUrl(s) { return s.returnUrl || BASE + 'memory-game/'; }
+
+  // With two players, card i belongs to player i % 2. Each player recalls
+  // their own cards in order: all of player 1's first, then player 2's.
+  function ownerOf(i, players) { return i % players; }
+  function recallOrderFor(n, players) {
+    var order = [];
+    for (var p = 0; p < players; p++) {
+      for (var i = 0; i < n; i++) if (ownerOf(i, players) === p) order.push(i);
+    }
+    return order;
+  }
+  function isGroupStart(order, players, step) {
+    return step > 0 && step < order.length &&
+      ownerOf(order[step], players) !== ownerOf(order[step - 1], players);
+  }
 
   /* ── State ───────────────────────────────────────────────────────── */
 
@@ -77,7 +102,8 @@
     screen: 'setup',
     sequence: [], pool: [],
     memorizeIndex: 0,
-    recallIndex: 0, recallAnswers: [], recallLocked: false,
+    players: 1,
+    recallOrder: [], recallStep: 0, recallAnswers: [], recallLocked: false,
     cardCount: 10,
     delayMinutes: loadDelay(),
     buildOpts: null,
@@ -91,6 +117,7 @@
       <div id="mem-screen-setup"    class="mem-screen"></div>
       <div id="mem-screen-wait"     class="mem-screen"></div>
       <div id="mem-screen-memorize" class="mem-screen"></div>
+      <div id="mem-screen-handover" class="mem-screen"></div>
       <div id="mem-screen-recall"   class="mem-screen"></div>
       <div id="mem-screen-result"   class="mem-screen"></div>`;
   }
@@ -121,22 +148,20 @@
     showScreen('setup');
   }
 
-  function start(count, buildOpts, delayMinutes) {
+  function start(count, buildOpts, delayMinutes, players) {
     var built = config.build(count, buildOpts);
     if (!built || !built.sequence.length) {
       alert('No cards available for this selection.');
       return;
     }
-    state.cardCount   = count;
-    state.buildOpts   = buildOpts || null;
+    state.cardCount    = count;
+    state.buildOpts    = buildOpts || null;
+    state.players      = players === 2 ? 2 : 1;
     state.delayMinutes = validDelay(delayMinutes) ? delayMinutes : state.delayMinutes;
     saveDelay(state.delayMinutes);
     state.pool          = built.pool;
     state.sequence      = built.sequence;
     state.memorizeIndex = 0;
-    state.recallIndex   = 0;
-    state.recallAnswers = new Array(state.sequence.length).fill(null);
-    state.recallLocked  = false;
     showScreen('memorize');
     renderMemorize();
   }
@@ -167,7 +192,10 @@
     var card  = state.sequence[index];
     var total = state.sequence.length;
     var prog  = document.getElementById('mem-progress');
-    if (prog) prog.textContent = 'Card ' + (index + 1) + ' / ' + total;
+    if (prog) {
+      var who = state.players > 1 ? 'Player ' + (ownerOf(index, state.players) + 1) + ' · ' : '';
+      prog.textContent = who + 'Card ' + (index + 1) + ' / ' + total;
+    }
     var animEl = document.getElementById('mem-card-anim');
     if (!animEl) return;
     var fresh = animEl.cloneNode(false);
@@ -205,11 +233,13 @@
       buildOpts:    state.buildOpts,
       cardCount:    state.cardCount,
       delayMinutes: state.delayMinutes,
+      players:      state.players,
       sequence:     state.sequence,
       pool:         state.pool,
       phase:        'waiting',
       dueAt:        Date.now() + state.delayMinutes * 60000,
-      recallIndex:  0,
+      recallStep:   0,
+      ackStep:      -1,
       recallAnswers: [],
     };
     saveSession();
@@ -245,58 +275,97 @@
 
   /* ── Recall ──────────────────────────────────────────────────────── */
 
+  function loadRecallState(s) {
+    state.sequence      = s.sequence;
+    state.pool          = s.pool;
+    state.players       = s.players;
+    state.cardCount     = s.cardCount;
+    state.buildOpts     = s.buildOpts || null;
+    state.delayMinutes  = s.delayMinutes;
+    state.recallOrder   = recallOrderFor(s.sequence.length, s.players);
+    state.recallStep    = s.recallStep;
+    state.recallAnswers = s.recallAnswers;
+    state.recallLocked  = false;
+  }
+
   function beginRecall() {
     session.phase         = 'recall';
-    session.recallIndex   = 0;
+    session.recallStep    = 0;
+    session.ackStep       = -1;
     session.recallAnswers = new Array(session.sequence.length).fill(null);
     saveSession();
-    state.sequence      = session.sequence;
-    state.pool          = session.pool;
-    state.recallIndex   = 0;
-    state.recallAnswers = session.recallAnswers;
-    state.recallLocked  = false;
-    showScreen('recall');
-    renderRecall();
-    updateBanner();
+    loadRecallState(session);
+    showRecallStep();
   }
 
   // Restores an in-progress recall, including the slots already answered.
   function resumeRecall() {
-    var s = session;
-    state.buildOpts    = s.buildOpts || null;
-    state.cardCount    = s.cardCount;
-    state.delayMinutes = s.delayMinutes;
-    state.sequence     = s.sequence;
-    state.pool         = s.pool;
-    state.recallIndex  = s.recallIndex;
-    state.recallAnswers = s.recallAnswers;
-    state.recallLocked = false;
-    if (s.recallIndex >= s.sequence.length) { showResult(); return; }
-    showScreen('recall');
-    renderRecall();
-    s.recallAnswers.forEach(function (ans, i) { if (ans) fillSlot(i, ans.card, ans.correct); });
-    document.querySelectorAll('#mem-screen-recall .mem-slot.active').forEach(function (el) { el.classList.remove('active'); });
-    updateActiveSlot();
-    updateBanner();
+    loadRecallState(session);
+    showRecallStep();
   }
 
   function persistRecall() {
     if (!session) return;
-    session.recallIndex   = state.recallIndex;
+    session.recallStep    = state.recallStep;
     session.recallAnswers = state.recallAnswers;
     saveSession();
     updateBanner();
   }
 
-  function renderRecall() {
-    var n    = state.sequence.length;
-    var el   = document.getElementById('mem-screen-recall');
-
-    var slotsHtml = '<div class="mem-slots-wrap"><div class="mem-slots" id="mem-slots">';
-    for (var i = 0; i < n; i++) {
-      slotsHtml += '<div class="mem-slot' + (i === 0 ? ' active' : '') + '" id="mem-slot-' + i + '">' + (i + 1) + '</div>';
+  // Shows the recall screen for the current step, the handover between players, or the result.
+  function showRecallStep() {
+    var n = state.sequence.length;
+    if (state.recallStep >= n) { showResult(); return; }
+    if (isGroupStart(state.recallOrder, state.players, state.recallStep) && session.ackStep !== state.recallStep) {
+      renderHandover();
+      return;
     }
-    slotsHtml += '</div></div>';
+    showScreen('recall');
+    renderRecall();
+    updateBanner();
+  }
+
+  function renderHandover() {
+    var step = state.recallStep;
+    var next = ownerOf(state.recallOrder[step], state.players);
+    var prev = next - 1;
+    var answers = state.recallAnswers, score = 0, total = 0;
+    state.recallOrder.forEach(function (pos) {
+      if (ownerOf(pos, state.players) !== prev) return;
+      total++;
+      if (answers[pos] && answers[pos].correct) score++;
+    });
+    document.getElementById('mem-screen-handover').innerHTML = `
+      <div class="mem-setup-card">
+        <div class="mem-setup-title">Player ${prev + 1} finished</div>
+        <div class="mem-session-msg">Score: ${score} / ${total}</div>
+        <p class="mem-hint">Pass the device to Player ${next + 1}.</p>
+        <button class="mem-btn-start" id="mem-btn-handover" type="button">Player ${next + 1}: recall my cards</button>
+      </div>`;
+    showScreen('handover');
+    document.getElementById('mem-btn-handover').addEventListener('click', function () {
+      session.ackStep = step;
+      saveSession();
+      showRecallStep();
+    });
+  }
+
+  function renderRecall() {
+    var n     = state.sequence.length;
+    var el    = document.getElementById('mem-screen-recall');
+    var players = state.players;
+
+    var slotsHtml = '';
+    for (var p = 0; p < players; p++) {
+      var positions = [];
+      for (var i = 0; i < n; i++) if (ownerOf(i, players) === p) positions.push(i);
+      if (players > 1) slotsHtml += '<div class="mem-pool-label">Player ' + (p + 1) + '</div>';
+      slotsHtml += '<div class="mem-slots-wrap"><div class="mem-slots">';
+      positions.forEach(function (pos, k) {
+        slotsHtml += '<div class="mem-slot" id="mem-slot-' + pos + '">' + (k + 1) + '</div>';
+      });
+      slotsHtml += '</div></div>';
+    }
 
     var poolHtml = '<div class="mem-pool-label">Pick the cards in order</div><div class="mem-pool" id="mem-pool">';
     state.pool.forEach(function (card) {
@@ -308,6 +377,10 @@
 
     el.innerHTML = slotsHtml + poolHtml;
 
+    // Answered slots keep their result; the current slot is highlighted.
+    state.recallAnswers.forEach(function (ans, pos) { if (ans) fillSlot(pos, ans.card, ans.correct); });
+    updateActiveSlot();
+
     document.getElementById('mem-pool').addEventListener('click', function (e) {
       var cardEl = e.target.closest('.mem-pool-card');
       if (!cardEl || state.recallLocked) return;
@@ -316,27 +389,23 @@
   }
 
   function handlePick(pickedId, pickedEl) {
-    var pos = state.recallIndex;
-    if (pos >= state.sequence.length) return;
+    if (state.recallLocked || state.recallStep >= state.sequence.length) return;
+    var pos     = state.recallOrder[state.recallStep];
     var correct = state.sequence[pos];
     var isRight = pickedId === correct.id;
 
     state.recallAnswers[pos] = { card: correct, correct: isRight };
+    state.recallLocked = true;
 
     if (isRight) {
       pickedEl.style.animation   = 'correctPulse 0.5s ease both';
       pickedEl.style.borderColor = '#4ade80';
       fillSlot(pos, correct, true);
-      setTimeout(function () { pickedEl.style.animation = ''; pickedEl.style.borderColor = ''; }, 500);
-      state.recallIndex++;
-      persistRecall();
-      if (state.recallIndex >= state.sequence.length) {
-        setTimeout(showResult, 600);
-      } else {
-        updateActiveSlot();
-      }
+      setTimeout(function () {
+        pickedEl.style.animation = ''; pickedEl.style.borderColor = '';
+        advanceRecall();
+      }, 500);
     } else {
-      state.recallLocked = true;
       pickedEl.style.animation   = 'incorrectShake 0.4s ease both';
       pickedEl.style.borderColor = '#e05040';
       var correctEl = document.querySelector('[data-card-id="' + correct.id.replace(/"/g, '\\"') + '"]');
@@ -345,16 +414,16 @@
       setTimeout(function () {
         pickedEl.style.animation = ''; pickedEl.style.borderColor = '';
         if (correctEl) { correctEl.style.animation = ''; correctEl.style.borderColor = ''; }
-        state.recallLocked = false;
-        state.recallIndex++;
-        persistRecall();
-        if (state.recallIndex >= state.sequence.length) {
-          showResult();
-        } else {
-          updateActiveSlot();
-        }
+        advanceRecall();
       }, 800);
     }
+  }
+
+  function advanceRecall() {
+    state.recallLocked = false;
+    state.recallStep++;
+    persistRecall();
+    showRecallStep();
   }
 
   function fillSlot(pos, card, isCorrect) {
@@ -366,7 +435,9 @@
   }
 
   function updateActiveSlot() {
-    var slot = document.getElementById('mem-slot-' + state.recallIndex);
+    document.querySelectorAll('#mem-screen-recall .mem-slot.active').forEach(function (el) { el.classList.remove('active'); });
+    if (state.recallStep >= state.sequence.length) return;
+    var slot = document.getElementById('mem-slot-' + state.recallOrder[state.recallStep]);
     if (slot) slot.classList.add('active');
   }
 
@@ -378,16 +449,34 @@
     showScreen('result');
     var answers = state.recallAnswers;
     var n       = answers.length;
-    var score   = answers.filter(function (a) { return a && a.correct; }).length;
+    var players = state.players;
     var el      = document.getElementById('mem-screen-result');
 
+    var scores = [], totals = [];
+    for (var p = 0; p < players; p++) { scores.push(0); totals.push(0); }
+    for (var i = 0; i < n; i++) {
+      var o = ownerOf(i, players);
+      totals[o]++;
+      if (answers[i] && answers[i].correct) scores[o]++;
+    }
+    var scoreHtml = players === 1
+      ? `<div class="mem-score-block">
+          <div class="mem-score-label">Your Score</div>
+          <div class="mem-score-value">
+            <span class="mem-score-num">${scores[0]}</span><span class="mem-score-denom"> / ${totals[0]}</span>
+          </div>
+        </div>`
+      : `<div class="mem-score-block">
+          <div class="mem-score-players">${scores.map(function (sc, k) {
+            return `<div class="mem-score-player">
+              <div class="mem-score-label">Player ${k + 1}</div>
+              <div class="mem-score-value"><span class="mem-score-num">${sc}</span><span class="mem-score-denom"> / ${totals[k]}</span></div>
+            </div>`;
+          }).join('')}</div>
+        </div>`;
+
     var html = `<div class="mem-result-wrap">
-      <div class="mem-score-block">
-        <div class="mem-score-label">Your Score</div>
-        <div class="mem-score-value">
-          <span class="mem-score-num">${score}</span><span class="mem-score-denom"> / ${n}</span>
-        </div>
-      </div>
+      ${scoreHtml}
       <div class="mem-result-actions">
         <button class="mem-btn-result primary" id="mem-btn-again">Play again</button>
         <button class="mem-btn-result secondary" id="mem-btn-back-setup">Change settings</button>
@@ -395,18 +484,18 @@
       <div class="mem-replay-label">Sequence Replay</div>
       <div class="mem-replay-grid">`;
 
-    for (var i = 0; i < n; i++) {
-      var ans   = answers[i];
-      var card  = ans ? ans.card : null;
-      var isOk  = ans && ans.correct;
-      var cls   = isOk ? 'correct' : 'incorrect';
-      html += '<div class="mem-replay-card ' + cls + '">';
+    for (var j = 0; j < n; j++) {
+      var ans  = answers[j];
+      var card = ans ? ans.card : null;
+      var isOk = ans && ans.correct;
+      html += '<div class="mem-replay-card ' + (isOk ? 'correct' : 'incorrect') + '">';
       if (card && card.imgUrl) {
         html += '<img src="' + card.imgUrl + '" alt="' + esc(card.name) + '" />';
       } else {
         html += '<div class="mem-no-image">' + (card ? esc(card.name) : '?') + '</div>';
       }
-      html += '<div class="mem-replay-num">' + (i + 1) + '</div>'
+      var num = players > 1 ? (j + 1) + ' · P' + (ownerOf(j, players) + 1) : String(j + 1);
+      html += '<div class="mem-replay-num">' + num + '</div>'
         + '<div class="mem-replay-overlay"></div>'
         + '<div class="mem-replay-badge">' + (isOk ? '✓' : '✗') + '</div>'
         + '</div>';
@@ -415,13 +504,14 @@
     el.innerHTML = html;
 
     document.getElementById('mem-btn-again').addEventListener('click', function () {
-      start(state.cardCount, state.buildOpts, state.delayMinutes);
+      start(state.cardCount, state.buildOpts, state.delayMinutes, state.players);
     });
     document.getElementById('mem-btn-back-setup').addEventListener('click', function () {
       showSetup();
     });
 
-    if (score > 0) {
+    var total = scores.reduce(function (a, b) { return a + b; }, 0);
+    if (total > 0) {
       var colors = ['#c4864a', '#e8dfd0', '#4ade80', '#60a5fa', '#fb7185'];
       for (var k = 0; k < 40; k++) {
         var c = document.createElement('div');
@@ -447,7 +537,7 @@
     if (!s) { b.hidden = true; return; }
     var text, cta, extra = '';
     if (s.phase === 'recall') {
-      text = 'Memory test in progress · ' + s.recallIndex + ' / ' + s.sequence.length + ' · ' + sessionLabel(s);
+      text = 'Memory test in progress · ' + s.recallStep + ' / ' + s.sequence.length + ' · ' + sessionLabel(s);
       cta = 'Resume';
     } else if (isDue()) {
       text = 'Memory test ready · ' + sessionLabel(s);
@@ -512,6 +602,7 @@
     validDelay: validDelay,
     maxDelay: MAX_DELAY,
     // Mounts the game into `root`. `build(count, opts)` must return { sequence, pool }.
+    // setupRender(el, api) builds the form; api.start(count, opts, delayMinutes, players).
     mount: function (root, opts) {
       config = {
         root: root,
