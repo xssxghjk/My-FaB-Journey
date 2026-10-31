@@ -1963,211 +1963,6 @@
     }
     .sim-ignore-t0-label input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
 
-    /* ── Memory tab ── */
-    .mem-setup-card {
-      background: var(--surface);
-      border: 1px solid var(--border-2);
-      border-top: 2px solid var(--accent);
-      border-radius: 2px;
-      padding: 1.75rem;
-      max-width: 420px;
-      margin: 0 auto;
-    }
-    .mem-setup-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-style: italic; font-size: 1.2rem; font-weight: 900;
-      color: var(--text); margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
-    }
-    .mem-form-group { margin-bottom: 1.1rem; }
-    .mem-form-label {
-      display: block;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.68rem; font-weight: 400; letter-spacing: 0.09em;
-      text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
-    }
-    .mem-go-toggle {
-      display: flex;
-      border: 1px solid var(--border-2); border-radius: 2px; overflow: hidden;
-    }
-    .mem-go-btn {
-      flex: 1; padding: 0.45rem 0.5rem;
-      background: var(--surface-2); color: var(--muted);
-      border: none; border-right: 1px solid var(--border-2);
-      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem;
-      cursor: pointer; transition: background 0.15s, color 0.15s;
-    }
-    .mem-go-btn:last-child { border-right: none; }
-    .mem-go-btn:hover:not(.active) { background: var(--border); color: var(--text); }
-    .mem-go-btn.active { background: var(--accent); color: #fff; }
-    .mem-go-btn:active { transform: none; }
-    .mem-btn-start {
-      width: 100%; padding: 0.75rem 1.25rem; margin-top: 0.5rem;
-      background: var(--accent); color: #fff;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.95rem; letter-spacing: 0.04em;
-      border: none; border-radius: 2px; cursor: pointer;
-      transition: opacity 0.12s, transform 0.12s;
-    }
-    .mem-btn-start:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-    .mem-btn-start:active:not(:disabled) { transform: translateY(1px); }
-    .mem-btn-start:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    .mem-screen { display: none; }
-    .mem-screen.active { display: block; }
-
-    .mem-memorize-wrap {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; min-height: 52vh;
-      cursor: pointer; user-select: none;
-    }
-    .mem-progress {
-      text-align: center; margin-bottom: 1.25rem;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.78rem; color: var(--accent);
-    }
-    .mem-card-anim {
-      display: flex; flex-direction: column; align-items: center; gap: 1rem;
-    }
-    .mem-card-img {
-      width: min(240px, 65vw); border-radius: 14px;
-      box-shadow: 0 10px 32px rgba(0,0,0,0.25); display: block;
-    }
-    .mem-card-name {
-      font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
-      font-size: 1rem; font-weight: 700; color: var(--text); text-align: center;
-    }
-    .mem-hint { margin-top: 1.25rem; font-size: 0.75rem; color: var(--muted-2); text-align: center; }
-
-    .mem-slots-wrap { overflow-x: auto; margin-bottom: 1.5rem; padding-bottom: 0.25rem; }
-    .mem-slots {
-      display: flex; gap: 0.5rem; min-width: max-content; padding: 0.5rem 0.25rem;
-    }
-    .mem-slot {
-      width: 62px; height: 88px;
-      background: var(--surface-2); border: 2px dashed var(--border-2); border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; color: var(--muted-2); position: relative; flex-shrink: 0;
-      font-family: 'DM Serif Text', Georgia, serif; transition: border-color 0.2s;
-    }
-    .mem-slot.active { border-color: var(--accent); border-style: solid; }
-    .mem-slot img {
-      width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
-    }
-    .mem-slot-badge {
-      position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    .mem-slot-badge.correct  { background: #4ade80; color: #fff; }
-    .mem-slot-badge.incorrect { background: #e05040; color: #fff; }
-
-    .mem-pool-label {
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 0.9rem;
-    }
-    .mem-pool { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
-    .mem-pool-card {
-      width: 120px; background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: 4px; overflow: hidden; cursor: pointer;
-      transition: border-color 0.15s, transform 0.15s;
-    }
-    .mem-pool-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .mem-pool-card img { width: 100%; display: block; }
-    .mem-pool-card-name {
-      font-size: 0.68rem; color: var(--muted-2); padding: 0.25rem 0.35rem;
-      text-align: center; line-height: 1.3;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-    }
-
-    .mem-result-wrap { max-width: 640px; margin: 0 auto; padding-top: 0.5rem; }
-    .mem-score-block { text-align: center; margin-bottom: 2rem; }
-    .mem-score-label {
-      font-size: 0.72rem; font-weight: 800; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem;
-    }
-    .mem-score-value {
-      font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
-      font-weight: 900; font-size: clamp(2.5rem, 9vw, 4.5rem);
-      letter-spacing: -0.02em; line-height: 1;
-    }
-    .mem-score-num { color: var(--accent); }
-    .mem-score-denom { color: var(--muted-2); font-size: 0.6em; }
-    .mem-result-actions {
-      display: flex; gap: 0.75rem; justify-content: center;
-      margin-bottom: 2rem; flex-wrap: wrap;
-    }
-    .mem-btn-result {
-      padding: 0.65rem 1.5rem;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.9rem; letter-spacing: 0.03em; border-radius: 2px;
-      cursor: pointer; transition: opacity 0.15s, transform 0.15s; border: none;
-    }
-    .mem-btn-result:hover { transform: translateY(-2px); }
-    .mem-btn-result.primary { background: var(--accent); color: #fff; }
-    .mem-btn-result.secondary {
-      background: var(--surface-2); color: var(--text); border: 1px solid var(--border-2);
-    }
-    .mem-replay-label {
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-      font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase;
-      color: var(--muted-2); margin-bottom: 0.9rem; text-align: center;
-    }
-    .mem-replay-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
-    .mem-replay-card {
-      position: relative; width: 80px; border-radius: 10px;
-      overflow: hidden; border: 2px solid var(--border);
-    }
-    .mem-replay-card img { width: 100%; display: block; }
-    .mem-replay-overlay { position: absolute; inset: 0; border-radius: 8px; opacity: 0.2; }
-    .mem-replay-card.correct  .mem-replay-overlay { background: #4ade80; }
-    .mem-replay-card.incorrect .mem-replay-overlay { background: #e05040; }
-    .mem-replay-badge {
-      position: absolute; bottom: 3px; right: 3px; width: 20px; height: 20px;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    .mem-replay-card.correct  .mem-replay-badge { background: #4ade80; color: #fff; }
-    .mem-replay-card.incorrect .mem-replay-badge { background: #e05040; color: #fff; }
-    .mem-replay-num {
-      position: absolute; top: 3px; left: 4px;
-      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.62rem;
-      color: rgba(255,255,255,0.85); text-shadow: 0 1px 3px rgba(0,0,0,0.7);
-    }
-    .mem-no-image {
-      width: 100%; height: 110px; background: var(--surface-2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; color: var(--muted-2); text-align: center;
-      padding: 0.25rem; line-height: 1.3;
-    }
-    .mem-countdown {
-      font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 900;
-      font-size: 3rem; color: var(--accent); text-align: center; margin: 0.9rem 0 0.4rem;
-      font-variant-numeric: tabular-nums;
-    }
-    .mem-session-set { text-align: center; font-size: 0.82rem; color: var(--muted-2); margin-bottom: 0.9rem; }
-    .mem-session-msg { text-align: center; font-size: 0.95rem; color: var(--text); }
-    .mem-btn-abandon { width: 100%; margin-top: 0.6rem; }
-    #mem-session-banner {
-      position: fixed; left: 0; right: 0; top: 0; z-index: 160;
-      display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-      padding: 0.7rem 1.1rem; cursor: pointer;
-      background: var(--surface, #252018); color: var(--text);
-      border-bottom: 1px solid var(--accent);
-      font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem;
-    }
-    #mem-session-banner[hidden] { display: none; }
-    #mem-session-banner.ready { background: var(--accent); color: #fff; }
-    .mem-banner-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .mem-banner-cta { font-style: italic; flex-shrink: 0; text-decoration: underline; }
-    .mem-empty-note {
-      font-size: 0.83rem; color: var(--muted); line-height: 1.65;
-      padding: 0.75rem 1rem;
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 2px; margin-top: 0.5rem;
-      font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
-    }
   </style>
 </head>
 <body>
@@ -2573,16 +2368,14 @@ Header lines, section labels, and footers are ignored automatically."></textarea
 <script>fetch('../version.json').then(r=>r.json()).then(v=>{var e=document.getElementById('page-version');if(e)e.textContent='v'+v.version}).catch(()=>{});</script>
 <script>(function(){var u=0;try{for(var k in localStorage){if(Object.prototype.hasOwnProperty.call(localStorage,k))u+=(k.length+localStorage[k].length)*2}}catch(e){}var pct=+(u/(5*1024*1024)*100).toFixed(1),el=document.getElementById('storage-size');if(el){el.textContent='Storage: '+pct+'%';el.style.opacity=0.65;if(pct>90)el.style.color='#f87171';else if(pct>70)el.style.color='#fbbf24';}})();</script>
 <script src="decklists/index.js"></script>
+<script src="../memory-game.js"></script>
 
 <script>
 (function () {
   'use strict';
 
   const DB_URL = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/outbreak/json/english/card.json';
-  const SET_URL = DB_URL.replace(/card\.json$/, 'set.json');
   let db = null;
-  let setCards = new Map();   // set_id -> Map(cardKey -> memory-game card)
-  const setNameById = {};     // set_id -> display name
   let currentReplaceEntry = null;
   let currentReplaceNewEntry = null;
   let addCardNewEntry = null;
@@ -2681,12 +2474,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     updateLoading('Parsing card data…');
     const cards = await resp.json();
     updateLoading('Indexing cards…');
-    try {
-      const setResp = await fetch(SET_URL);
-      if (setResp.ok) for (const s of await setResp.json()) setNameById[s.id] = s.name;
-    } catch { /* set names are cosmetic: fall back to set codes */ }
     db = new Map();
-    setCards = new Map();
     for (const card of cards) {
       const printing  = card.printings && card.printings.length ? card.printings[0] : null;
       const imgUrl    = printing ? (printing.image_url || null) : null;
@@ -2710,17 +2498,6 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       const nameLow = card.name.toLowerCase();
       if (entry.color) db.set(`${nameLow}_${entry.color}`, entry);
       if (!db.has(nameLow)) db.set(nameLow, entry);
-
-      /* Per-set card lists for the memory game: one card per name + colour per set */
-      for (const p of (card.printings || [])) {
-        if (!p.set_id) continue;
-        let bucket = setCards.get(p.set_id);
-        if (!bucket) { bucket = new Map(); setCards.set(p.set_id, bucket); }
-        const key = card.name + '_' + entry.color;
-        const prev = bucket.get(key);
-        if (prev && prev.imgUrl) continue;
-        bucket.set(key, { id: key, name: card.name, imgUrl: p.image_url || null, color: entry.color, pitch: entry.pitch });
-      }
     }
   }
 
@@ -2905,19 +2682,6 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     return _comb(K, k) * _comb(N - K, n - k) / _comb(N, n);
   }
 
-  const memState = {
-    screen: 'setup',
-    sequence: [],
-    pool: [],
-    memorizeIndex: 0,
-    recallIndex: 0,
-    recallAnswers: [],
-    recallLocked: false,
-    cardCount: 10,
-    delayMinutes: 30,
-    setId: null,
-  };
-
   function renderDetail(deck, pairs) {
     document.getElementById('detail-name').textContent = deck.name;
     document.getElementById('detail-date').textContent =
@@ -2948,7 +2712,6 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     document.getElementById('tab-memory').style.display = 'none';
     analysisAnimated = false;
     sideboardRendered = false;
-    memState.screen = 'setup';
     currentDeckPairs = pairs;
     currentAnalysisPairs = pairs;
     currentAnalysisMatchupId = '';
@@ -5826,571 +5589,187 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     document.getElementById('tab-analysis').style.display = 'none';
     document.getElementById('tab-sideboard').style.display = 'none';
     document.getElementById('tab-memory').style.display = '';
-    memRoute();
+    MemoryGame.refresh();
   });
 
-  /* ── Memory game ──────────────────────────────────────────────────── */
+  /* ── Memory game (this deck only) ─────────────────────────────────── */
 
-  // Main booster sets, listed under "Booster sets" in roughly release order.
-  // Every other set in the card database (Blitz/Armory decks, promos, …) goes
-  // under "Other products". Add a set's code here to move it into the first group.
-  const MEM_BOOSTER_SET_IDS = [
-    'WTR', 'ARC', 'CRU', 'MON', 'ELE', 'EVR', 'DTD', 'EVO', 'OUT', 'DYN',
-    'UPR', 'HVY', 'MST', 'OMN', 'IAR', 'OBK',
-  ];
+  let memCountPref = 10;
 
-  // A memory test is persisted so it survives closing or reloading the page.
-  const MEM_SESSION_KEY   = 'fab_memory_session_v1';
-  const MEM_DELAY_KEY     = 'fab_memory_delay_v1';
-  const MEM_DEFAULT_DELAY = 30;     // minutes
-  const MEM_MAX_DELAY     = 1440;   // minutes
-  const memBaseTitle      = document.title;
-
-  function memLoadSession() {
-    try {
-      const s = JSON.parse(localStorage.getItem(MEM_SESSION_KEY));
-      return s && s.setId && Array.isArray(s.sequence) ? s : null;
-    } catch { return null; }
-  }
-  function memSaveSession() {
-    if (!memSession) return;
-    try { localStorage.setItem(MEM_SESSION_KEY, JSON.stringify(memSession)); }
-    catch { /* storage blocked or full: the session still works for this page view */ }
-  }
-  function memClearSession() {
-    memSession = null;
-    try { localStorage.removeItem(MEM_SESSION_KEY); } catch { /* ignore */ }
-  }
-  function memLoadDelayPref() {
-    try {
-      const v = parseInt(localStorage.getItem(MEM_DELAY_KEY), 10);
-      if (v >= 1 && v <= MEM_MAX_DELAY) return v;
-    } catch { /* ignore */ }
-    return MEM_DEFAULT_DELAY;
-  }
-  function memSaveDelayPref(v) {
-    try { localStorage.setItem(MEM_DELAY_KEY, String(v)); } catch { /* ignore */ }
-  }
-  let memSession = memLoadSession();
-
-  function memGetSetName(id) { return setNameById[id] || id; }
-  function memIsDue() { return !!memSession && Date.now() >= memSession.dueAt; }
-  function memFormatTime(ms) {
-    const s = Math.max(0, Math.ceil(ms / 1000));
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-    const pad = v => String(v).padStart(2, '0');
-    return (h ? h + ':' + pad(m) : String(m)) + ':' + pad(sec);
+  function memCurrentDeck() {
+    return loadDecks().find(d => d.id === currentDeckId) || null;
   }
 
-  function memShowScreen(name) {
-    document.querySelectorAll('.mem-screen').forEach(el => el.classList.remove('active'));
-    const el = document.getElementById('mem-screen-' + name);
-    if (el) { el.classList.add('active'); memState.screen = name; }
+  function memBuildDeckPairs(allPairs, matchup, goFirst) {
+    const pitchPairs = allPairs.filter(p => p.card && p.card.color);
+    if (!matchup) return pitchPairs;
+
+    const cutsRaw = matchup.splitSideboard
+      ? (goFirst ? (matchup.cardsOutFirstRaw || '') : (matchup.cardsOutSecondRaw || ''))
+      : (matchup.cardsOutRaw || '');
+
+    const cuts = parseDecklist(cutsRaw);
+    if (!cuts.length) return pitchPairs;
+
+    const cutMap = {};
+    for (const c of cuts) cutMap[c.name.toLowerCase() + '|' + (c.hint || '')] = c.qty;
+
+    return pitchPairs.map(p => {
+      const key = p.entry.name.toLowerCase() + '|' + (p.entry.hint || '');
+      const cutQty = cutMap[key] || 0;
+      if (!cutQty) return p;
+      const newQty = p.entry.qty - cutQty;
+      if (newQty <= 0) return null;
+      return { entry: { ...p.entry, qty: newQty }, card: p.card };
+    }).filter(Boolean);
   }
 
-  function memEnsureShell() {
-    const container = document.getElementById('memory-content');
-    if (!container || document.getElementById('mem-screen-setup')) return;
-    container.innerHTML = `
-      <div id="mem-screen-setup"    class="mem-screen"></div>
-      <div id="mem-screen-wait"     class="mem-screen"></div>
-      <div id="mem-screen-memorize" class="mem-screen"></div>
-      <div id="mem-screen-recall"   class="mem-screen"></div>
-      <div id="mem-screen-result"   class="mem-screen"></div>`;
-  }
-
-  // Chooses the Memory tab screen from the saved session (if any).
-  function memRoute() {
-    memEnsureShell();
-    if (memState.screen === 'memorize' || memState.screen === 'result') return;
-    if (memSession) {
-      if (memSession.phase === 'recall') memResumeRecall(); else memRenderWait();
-    } else {
-      memRenderSetup();
+  // Every copy of every card is a candidate, with blue/yellow cards weighted higher.
+  function memBuildDeckSequence(deckPairs, n) {
+    const weighted = [];
+    for (const { entry, card } of deckPairs) {
+      const multiplier = card.color === 'blue' ? 3 : card.color === 'yellow' ? 2 : 1;
+      const cardObj = {
+        id: card.name + '_' + card.color,
+        name: card.name,
+        imgUrl: card.imgUrl || null,
+        color: card.color,
+        pitch: card.pitch,
+      };
+      for (let i = 0; i < entry.qty * multiplier; i++) weighted.push(cardObj);
     }
+    return MemoryGame.sample(weighted, n);
   }
 
-  function memGetSetOptions() {
-    const booster = [], other = [];
-    for (const [id, cards] of setCards) {
-      if (!cards.size) continue;
-      const opt = { id, name: memGetSetName(id), count: cards.size };
-      if (MEM_BOOSTER_SET_IDS.includes(id)) booster.push(opt); else other.push(opt);
+  function memBuildDeckPool(deckPairs) {
+    const seen = new Set();
+    const pool = [];
+    for (const { card } of deckPairs) {
+      const id = card.name + '_' + card.color;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      pool.push({ id, name: card.name, imgUrl: card.imgUrl || null, color: card.color, pitch: card.pitch });
     }
-    booster.sort((a, b) => MEM_BOOSTER_SET_IDS.indexOf(a.id) - MEM_BOOSTER_SET_IDS.indexOf(b.id));
-    other.sort((a, b) => a.name.localeCompare(b.name));
-    return { booster, other };
-  }
-
-  function memBuildPool(setId) {
-    const bucket = setCards.get(setId);
-    if (!bucket) return [];
     const pitchRank = p => (p === 3 ? 0 : p === 2 ? 1 : p === 1 ? 2 : 3);
-    return [...bucket.values()].sort((a, b) => {
+    pool.sort((a, b) => {
       const d = pitchRank(a.pitch) - pitchRank(b.pitch);
       return d !== 0 ? d : a.name.localeCompare(b.name);
     });
+    return pool;
   }
 
-  function memBuildSequence(pool, n) {
-    const shuffled = pool.slice();
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+  function memRenderDeckSetup(el, api) {
+    const deck = memCurrentDeck();
+    if (!deck) {
+      el.innerHTML = `<div class="mem-setup-card"><div class="mem-setup-title">Memory Game</div>
+        <div class="mem-empty-note">Open a deck to memorize its cards.</div></div>`;
+      return;
     }
-    return shuffled.slice(0, Math.min(n, shuffled.length));
-  }
+    const guide = getSideboardGuide(deck);
+    const pitchPairs = currentDeckPairs.filter(p => p.card && p.card.color);
+    if (pitchPairs.length === 0) {
+      el.innerHTML = `<div class="mem-setup-card"><div class="mem-setup-title">Memory Game</div>
+        <div class="mem-empty-note">No pitch deck cards found. Import a deck with red, yellow, or blue cards to use the memory game.</div></div>`;
+      return;
+    }
 
-  function memStartGame(setId, n) {
-    const pool = memBuildPool(setId);
-    memState.setId         = setId;
-    memState.cardCount     = n;
-    memState.pool          = pool;
-    memState.sequence      = memBuildSequence(pool, n);
-    memState.memorizeIndex = 0;
-    memState.recallIndex   = 0;
-    memState.recallAnswers = new Array(memState.sequence.length).fill(null);
-    memState.recallLocked  = false;
-    memShowScreen('memorize');
-    memRenderMemorize();
-  }
-
-  function memRenderSetup() {
-    memEnsureShell();
-    const { booster, other } = memGetSetOptions();
-    const hasSets = booster.length + other.length > 0;
-    const optHtml = s => `<option value="${esc(s.id)}">${esc(s.name)} (${s.count} cards)</option>`;
-    const groupsHtml =
-      (booster.length ? `<optgroup label="Booster sets">${booster.map(optHtml).join('')}</optgroup>` : '') +
-      (other.length   ? `<optgroup label="Other products">${other.map(optHtml).join('')}</optgroup>` : '');
+    const maxCards = pitchPairs.reduce((s, p) => {
+      const m = p.card.color === 'blue' ? 3 : p.card.color === 'yellow' ? 2 : 1;
+      return s + p.entry.qty * m;
+    }, 0);
+    const matchupOpts = guide.map(m => `<option value="${esc(m.id)}">vs ${esc(m.hero)}</option>`).join('');
     const inputStyle = "background:var(--bg);border:1px solid var(--border-2);border-radius:2px;color:var(--text);font-family:'DM Serif Text',Georgia,serif;font-size:0.88rem;padding:0.65rem 1rem;width:100%;outline:none;";
+    const savedCount = Math.min(memCountPref, maxCards) || Math.min(10, maxCards);
 
-    document.getElementById('mem-screen-setup').innerHTML = `
-        <div class="mem-setup-card">
-          <div class="mem-setup-title">Memory Game</div>
-          ${!hasSets ? `<div class="mem-empty-note">No card sets found. The card database may not have loaded.</div>` : `
-          <div class="mem-form-group">
-            <label class="mem-form-label" for="mem-set-sel">Card set</label>
-            <select id="mem-set-sel">
-              <option value="">Choose a set…</option>
-              ${groupsHtml}
-            </select>
+    el.innerHTML = `
+      <div class="mem-setup-card">
+        <div class="mem-setup-title">Memory Game</div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-matchup-sel">Sideboard</label>
+          <select id="mem-matchup-sel">
+            <option value="">Full deck — no sideboard</option>
+            ${matchupOpts}
+          </select>
+        </div>
+        <div class="mem-form-group" id="mem-go-group" style="display:none">
+          <label class="mem-form-label">Turn order</label>
+          <div class="mem-go-toggle">
+            <button class="mem-go-btn active" id="mem-go-first" type="button">Go First</button>
+            <button class="mem-go-btn" id="mem-go-second" type="button">Go Second</button>
           </div>
-          <div class="mem-form-group">
-            <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
-            <input type="number" id="mem-count-inp" min="1" value="${memState.cardCount}" style="${inputStyle}" />
-          </div>
-          <div class="mem-form-group">
-            <label class="mem-form-label" for="mem-delay-inp">Test me after (minutes)</label>
-            <input type="number" id="mem-delay-inp" min="1" max="${MEM_MAX_DELAY}" value="${memState.delayMinutes}" style="${inputStyle}" />
-          </div>
-          <button class="mem-btn-start" id="mem-btn-start" type="button" disabled>Start</button>`}
-        </div>`;
-    memShowScreen('setup');
+        </div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
+          <input type="number" id="mem-count-inp" min="1" max="${maxCards}" value="${savedCount}" style="${inputStyle}" />
+        </div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-delay-inp">Test me after (minutes)</label>
+          <input type="number" id="mem-delay-inp" min="1" max="${MemoryGame.maxDelay}" value="${api.defaultDelay}" style="${inputStyle}" />
+        </div>
+        <button class="mem-btn-start" id="mem-btn-start" type="button">Start</button>
+      </div>`;
 
-    if (!hasSets) return;
+    const matchupSel = document.getElementById('mem-matchup-sel');
+    const goGroup    = document.getElementById('mem-go-group');
+    const goFirst    = document.getElementById('mem-go-first');
+    const goSecond   = document.getElementById('mem-go-second');
+    const countInp   = document.getElementById('mem-count-inp');
+    const delayInp   = document.getElementById('mem-delay-inp');
+    const startBtn   = document.getElementById('mem-btn-start');
 
-    const setSel   = document.getElementById('mem-set-sel');
-    const countInp = document.getElementById('mem-count-inp');
-    const delayInp = document.getElementById('mem-delay-inp');
-    const startBtn = document.getElementById('mem-btn-start');
-    const validDelay = d => d >= 1 && d <= MEM_MAX_DELAY;
+    function getSelectedMatchup() {
+      const id = matchupSel.value;
+      return id ? guide.find(m => m.id === id) : null;
+    }
 
-    function updateLimits(clampCount) {
-      const id  = setSel.value;
-      const max = id ? memBuildPool(id).length : 0;
+    function updateGoGroup() {
+      const m = getSelectedMatchup();
+      goGroup.style.display = (m && m.splitSideboard) ? '' : 'none';
+    }
+
+    function updateLimits(clamp) {
+      const m = getSelectedMatchup();
+      const max = memBuildDeckPairs(currentDeckPairs, m, goFirst.classList.contains('active'))
+        .reduce((s, p) => s + p.entry.qty * (p.card.color === 'blue' ? 3 : p.card.color === 'yellow' ? 2 : 1), 0);
       countInp.max = max || 1;
-      if (clampCount && max && parseInt(countInp.value, 10) > max) countInp.value = max;
+      if (clamp && parseInt(countInp.value, 10) > max) countInp.value = Math.min(10, max);
       const n = parseInt(countInp.value, 10);
       const d = parseInt(delayInp.value, 10);
-      startBtn.disabled = !max || !(n >= 1 && n <= max) || !validDelay(d);
+      startBtn.disabled = !max || !(n >= 1 && n <= max) || !MemoryGame.validDelay(d);
     }
 
-    setSel.addEventListener('change', () => updateLimits(true));
+    matchupSel.addEventListener('change', () => { updateGoGroup(); updateLimits(true); });
     countInp.addEventListener('input', () => updateLimits(false));
     delayInp.addEventListener('input', () => updateLimits(false));
+    goFirst.addEventListener('click', () => { goFirst.classList.add('active'); goSecond.classList.remove('active'); updateLimits(false); });
+    goSecond.addEventListener('click', () => { goSecond.classList.add('active'); goFirst.classList.remove('active'); updateLimits(false); });
 
     startBtn.addEventListener('click', () => {
       const n = parseInt(countInp.value, 10);
       const d = parseInt(delayInp.value, 10);
-      if (!setSel.value || !(n >= 1) || !validDelay(d)) return;
-      memState.delayMinutes = d;
-      memSaveDelayPref(d);
-      memStartGame(setSel.value, n);
+      if (!(n >= 1) || !MemoryGame.validDelay(d)) return;
+      const m = getSelectedMatchup();
+      memCountPref = n;
+      api.start(n, { matchupId: m ? m.id : null, goFirst: goFirst.classList.contains('active') }, d);
     });
 
+    updateGoGroup();
     updateLimits(false);
   }
 
-  // Shown while the test is waiting for its unlock time, and when it is ready.
-  function memRenderWait() {
-    memEnsureShell();
-    if (!memSession) { memRenderSetup(); return; }
-    const s   = memSession;
-    const due = memIsDue();
-    document.getElementById('mem-screen-wait').innerHTML = `
-      <div class="mem-setup-card" data-state="${due ? 'due' : 'waiting'}">
-        <div class="mem-setup-title">Memory Test</div>
-        <div class="mem-session-set">${esc(s.setName || memGetSetName(s.setId))} · ${s.sequence.length} cards</div>
-        <div class="mem-session-msg">${due ? 'Your test is ready.' : 'Memorization done. Your test unlocks in'}</div>
-        <div class="mem-countdown" id="mem-wait-count">${due ? 'Now' : memFormatTime(s.dueAt - Date.now())}</div>
-        <p class="mem-hint">${due ? 'Begin when you are ready.' : 'You can close this page. The test will be waiting when you come back.'}</p>
-        <button class="mem-btn-start" id="mem-btn-begin" type="button" ${due ? '' : 'disabled'}>Begin test</button>
-        <button class="mem-btn-result secondary mem-btn-abandon" id="mem-btn-abandon" type="button">Abandon session</button>
-      </div>`;
-    memShowScreen('wait');
-
-    document.getElementById('mem-btn-begin').addEventListener('click', () => {
-      if (memIsDue()) memBeginRecall();
-    });
-    document.getElementById('mem-btn-abandon').addEventListener('click', () => {
-      if (!confirm('Abandon this memory test? Your progress will be lost.')) return;
-      memClearSession();
-      memUpdateBanner();
-      memRenderSetup();
-    });
-    memUpdateBanner();
-  }
-
-  // Called once memorization finishes: starts the timer and saves the session.
-  function memBeginWait() {
-    memSession = {
-      setId:        memState.setId,
-      setName:      memGetSetName(memState.setId),
-      cardCount:    memState.cardCount,
-      delayMinutes: memState.delayMinutes,
-      sequence:     memState.sequence,
-      pool:         memState.pool,
-      phase:        'waiting',
-      dueAt:        Date.now() + memState.delayMinutes * 60000,
-      recallIndex:  0,
-      recallAnswers: [],
-    };
-    memSaveSession();
-    memRenderWait();
-  }
-
-  function memBeginRecall() {
-    memSession.phase        = 'recall';
-    memSession.recallIndex  = 0;
-    memSession.recallAnswers = new Array(memSession.sequence.length).fill(null);
-    memSaveSession();
-    memState.sequence      = memSession.sequence;
-    memState.pool          = memSession.pool;
-    memState.recallIndex   = 0;
-    memState.recallAnswers = memSession.recallAnswers;
-    memState.recallLocked  = false;
-    memShowScreen('recall');
-    memRenderRecall();
-    memUpdateBanner();
-  }
-
-  // Restores an in-progress recall from the saved session, including filled slots.
-  function memResumeRecall() {
-    const s = memSession;
-    memState.setId         = s.setId;
-    memState.cardCount     = s.cardCount;
-    memState.delayMinutes  = s.delayMinutes;
-    memState.sequence      = s.sequence;
-    memState.pool          = s.pool;
-    memState.recallIndex   = s.recallIndex;
-    memState.recallAnswers = s.recallAnswers;
-    memState.recallLocked  = false;
-    if (s.recallIndex >= s.sequence.length) { memShowResult(); return; }
-    memShowScreen('recall');
-    memRenderRecall();
-    s.recallAnswers.forEach((ans, i) => { if (ans) memFillSlot(i, ans.card, ans.correct); });
-    document.querySelectorAll('#mem-screen-recall .mem-slot.active').forEach(el => el.classList.remove('active'));
-    memUpdateActiveSlot();
-    memUpdateBanner();
-  }
-
-  function memPersistRecall() {
-    if (!memSession) return;
-    memSession.recallIndex   = memState.recallIndex;
-    memSession.recallAnswers = memState.recallAnswers;
-    memSaveSession();
-    memUpdateBanner();
-  }
-
-  /* ── Session notification bar (visible on every view) ── */
-
-  function memUpdateBanner() {
-    document.title = (memIsDue() ? '● ' : '') + memBaseTitle;
-    const b = document.getElementById('mem-session-banner');
-    if (!b) return;
-    const s = memSession;
-    if (!s) { b.hidden = true; return; }
-    const name = s.setName || memGetSetName(s.setId);
-    let text, cta, extra = '';
-    if (s.phase === 'recall') {
-      text = `Memory test in progress · ${s.recallIndex} / ${s.sequence.length}`;
-      cta = 'Resume';
-    } else if (memIsDue()) {
-      text = `Memory test ready · ${name}`;
-      cta = 'Begin';
-      extra = ' ready';
-    } else {
-      text = `Memory test in ${memFormatTime(s.dueAt - Date.now())} · ${name}`;
-      cta = 'View';
-    }
-    b.className = 'mem-banner' + extra;
-    b.innerHTML = `<span class="mem-banner-text">${esc(text)}</span><span class="mem-banner-cta">${cta} →</span>`;
-    b.hidden = false;
-  }
-
-  async function memOpenMemoryTab() {
-    const detail = document.getElementById('view-detail');
-    if (getComputedStyle(detail).display === 'none') {
-      const id = currentDeckId || (loadDecks()[0] || {}).id;
-      if (!id) return;
-      await viewDeck(id);
-    }
-    document.getElementById('tab-btn-memory').click();
-  }
-
-  // Updates countdowns and unlocks the waiting screen once the time has passed.
-  function memTick() {
-    memUpdateBanner();
-    if (!memSession || memSession.phase !== 'waiting' || memState.screen !== 'wait') return;
-    const card = document.querySelector('#mem-screen-wait .mem-setup-card');
-    if (!card) return;
-    if (memIsDue()) {
-      if (card.dataset.state !== 'due') memRenderWait();
-    } else {
-      const c = document.getElementById('mem-wait-count');
-      if (c) c.textContent = memFormatTime(memSession.dueAt - Date.now());
-    }
-  }
-
-  function memBuildBanner() {
-    const b = document.createElement('div');
-    b.id = 'mem-session-banner';
-    b.hidden = true;
-    b.setAttribute('role', 'status');
-    b.addEventListener('click', memOpenMemoryTab);
-    document.body.appendChild(b);
-  }
-
-  function memRenderMemorize() {
-    const el = document.getElementById('mem-screen-memorize');
-    el.innerHTML = `
-      <div class="mem-progress" id="mem-progress"></div>
-      <div class="mem-memorize-wrap" id="mem-wrap">
-        <div class="mem-card-anim" id="mem-card-anim"></div>
-        <p class="mem-hint">Tap / click to advance</p>
-      </div>
-    `;
-    memShowCard(0);
-    document.getElementById('mem-wrap').addEventListener('click', () => {
-      const next = memState.memorizeIndex + 1;
-      if (next < memState.sequence.length) {
-        memState.memorizeIndex = next;
-        memShowCard(next);
-      } else {
-        memShowGetReady();
-      }
-    });
-  }
-
-  function memShowCard(index) {
-    const card  = memState.sequence[index];
-    const total = memState.sequence.length;
-    const prog  = document.getElementById('mem-progress');
-    if (prog) prog.textContent = 'Card ' + (index + 1) + ' / ' + total;
-    const animEl = document.getElementById('mem-card-anim');
-    if (!animEl) return;
-    const fresh = animEl.cloneNode(false);
-    if (card.imgUrl) {
-      const img = document.createElement('img');
-      img.className = 'mem-card-img';
-      img.src = card.imgUrl;
-      img.alt = card.name;
-      fresh.appendChild(img);
-    }
-    const nameEl = document.createElement('div');
-    nameEl.className = 'mem-card-name';
-    nameEl.textContent = card.name;
-    fresh.appendChild(nameEl);
-    animEl.replaceWith(fresh);
-  }
-
-  function memShowGetReady() {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(28,24,20,0.94);display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',Georgia,serif;font-style:italic;font-size:2.2rem;font-weight:900;color:var(--accent);';
-    overlay.textContent = 'Memorization complete…';
-    document.body.appendChild(overlay);
-    setTimeout(() => {
-      overlay.remove();
-      memBeginWait();
-    }, 1000);
-  }
-
-  function memRenderRecall() {
-    const n    = memState.sequence.length;
-    const pool = memState.pool;
-    const el   = document.getElementById('mem-screen-recall');
-
-    let slotsHtml = '<div class="mem-slots-wrap"><div class="mem-slots" id="mem-slots">';
-    for (let i = 0; i < n; i++) {
-      slotsHtml += `<div class="mem-slot${i === 0 ? ' active' : ''}" id="mem-slot-${i}">${i + 1}</div>`;
-    }
-    slotsHtml += '</div></div>';
-
-    let poolHtml = '<div class="mem-pool-label">Pick the cards in order</div><div class="mem-pool" id="mem-pool">';
-    for (const card of pool) {
-      const en = esc(card.name);
-      const imgTag = card.imgUrl ? `<img src="${card.imgUrl}" alt="${en}" />` : '';
-      poolHtml += `<div class="mem-pool-card" data-card-id="${esc(card.id)}">${imgTag}<div class="mem-pool-card-name">${en}</div></div>`;
-    }
-    poolHtml += '</div>';
-
-    el.innerHTML = slotsHtml + poolHtml;
-
-    document.getElementById('mem-pool').addEventListener('click', e => {
-      const cardEl = e.target.closest('.mem-pool-card');
-      if (!cardEl || memState.recallLocked) return;
-      memHandlePick(cardEl.dataset.cardId, cardEl);
-    });
-  }
-
-  function memHandlePick(pickedId, pickedEl) {
-    const pos     = memState.recallIndex;
-    if (pos >= memState.sequence.length) return;
-    const correct = memState.sequence[pos];
-    const isRight = pickedId === correct.id;
-
-    memState.recallAnswers[pos] = { card: correct, correct: isRight };
-
-    if (isRight) {
-      pickedEl.style.animation   = 'correctPulse 0.5s ease both';
-      pickedEl.style.borderColor = '#4ade80';
-      memFillSlot(pos, correct, true);
-      setTimeout(() => { pickedEl.style.animation = ''; pickedEl.style.borderColor = ''; }, 500);
-      memState.recallIndex++;
-      memPersistRecall();
-      if (memState.recallIndex >= memState.sequence.length) {
-        setTimeout(memShowResult, 600);
-      } else {
-        memUpdateActiveSlot();
-      }
-    } else {
-      memState.recallLocked = true;
-      pickedEl.style.animation   = 'incorrectShake 0.4s ease both';
-      pickedEl.style.borderColor = '#e05040';
-      const correctEl = document.querySelector(`[data-card-id="${correct.id.replace(/"/g, '\\"')}"]`);
-      if (correctEl) { correctEl.style.animation = 'correctPulse 0.55s ease 0.1s both'; correctEl.style.borderColor = '#4ade80'; }
-      memFillSlot(pos, correct, false);
-      setTimeout(() => {
-        pickedEl.style.animation = ''; pickedEl.style.borderColor = '';
-        if (correctEl) { correctEl.style.animation = ''; correctEl.style.borderColor = ''; }
-        memState.recallLocked = false;
-        memState.recallIndex++;
-        memPersistRecall();
-        if (memState.recallIndex >= memState.sequence.length) {
-          memShowResult();
-        } else {
-          memUpdateActiveSlot();
-        }
-      }, 800);
-    }
-  }
-
-  function memFillSlot(pos, card, isCorrect) {
-    const slot = document.getElementById('mem-slot-' + pos);
-    if (!slot) return;
-    slot.classList.remove('active');
-    const imgTag = card.imgUrl ? `<img src="${card.imgUrl}" alt="${esc(card.name)}" />` : '';
-    const cls    = isCorrect ? 'correct' : 'incorrect';
-    const badge  = isCorrect ? '✓' : '✗';
-    slot.innerHTML = imgTag + `<div class="mem-slot-badge ${cls}">${badge}</div>`;
-  }
-
-  function memUpdateActiveSlot() {
-    const slot = document.getElementById('mem-slot-' + memState.recallIndex);
-    if (slot) slot.classList.add('active');
-  }
-
-  function memShowResult() {
-    memClearSession();
-    memUpdateBanner();
-    memShowScreen('result');
-    const answers = memState.recallAnswers;
-    const n       = answers.length;
-    const score   = answers.filter(a => a && a.correct).length;
-    const el      = document.getElementById('mem-screen-result');
-
-    let html = `<div class="mem-result-wrap">
-      <div class="mem-score-block">
-        <div class="mem-score-label">Your Score</div>
-        <div class="mem-score-value">
-          <span class="mem-score-num">${score}</span><span class="mem-score-denom"> / ${n}</span>
-        </div>
-      </div>
-      <div class="mem-result-actions">
-        <button class="mem-btn-result primary" id="mem-btn-again">Play again</button>
-        <button class="mem-btn-result secondary" id="mem-btn-back-setup">Change settings</button>
-      </div>
-      <div class="mem-replay-label">Sequence Replay</div>
-      <div class="mem-replay-grid">`;
-
-    for (let i = 0; i < n; i++) {
-      const ans   = answers[i];
-      const card  = ans ? ans.card : null;
-      const isOk  = ans && ans.correct;
-      const cls   = isOk ? 'correct' : 'incorrect';
-      const badge = isOk ? '✓' : '✗';
-      html += `<div class="mem-replay-card ${cls}">`;
-      if (card && card.imgUrl) {
-        html += `<img src="${card.imgUrl}" alt="${esc(card.name)}" />`;
-      } else {
-        html += `<div class="mem-no-image">${card ? esc(card.name) : '?'}</div>`;
-      }
-      html += `<div class="mem-replay-num">${i + 1}</div>
-        <div class="mem-replay-overlay"></div>
-        <div class="mem-replay-badge">${badge}</div>
-      </div>`;
-    }
-
-    html += `</div></div>`;
-    el.innerHTML = html;
-
-    document.getElementById('mem-btn-again').addEventListener('click', () => {
-      if (!memState.setId) { memRenderSetup(); return; }
-      memStartGame(memState.setId, memState.cardCount);
-    });
-
-    document.getElementById('mem-btn-back-setup').addEventListener('click', () => {
-      memRenderSetup();
-    });
-
-    if (score > 0) {
-      const colors = ['#c4864a','#e8dfd0','#4ade80','#60a5fa','#fb7185'];
-      for (let i = 0; i < 40; i++) {
-        const c = document.createElement('div');
-        c.style.cssText = `position:fixed;top:-10px;z-index:999;pointer-events:none;`
-          + `left:${Math.random()*100}vw;`
-          + `width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;`
-          + `background:${colors[Math.floor(Math.random()*colors.length)]};`
-          + `border-radius:${Math.random()>0.5?'50%':'3px'};`
-          + `animation:confettiFall ${1.5+Math.random()*2}s ease-in ${Math.random()*0.8}s forwards`;
-        document.body.appendChild(c);
-        c.addEventListener('animationend', () => c.remove());
-      }
-    }
-  }
-
-  /* ── Memory game: startup ── */
-  memState.delayMinutes = memLoadDelayPref();
-  memBuildBanner();
-  setInterval(memTick, 1000);
-  window.addEventListener('storage', e => {
-    if (e.key !== MEM_SESSION_KEY) return;
-    memSession = memLoadSession();
-    memUpdateBanner();
-    if (memState.screen === 'setup' || memState.screen === 'wait') memRoute();
+  MemoryGame.mount(document.getElementById('memory-content'), {
+    label: () => (memCurrentDeck() || {}).name || 'Deck',
+    returnUrl: () => MemoryGame.baseUrl + 'fab-deck-viewer/index.html?deck=' + encodeURIComponent(currentDeckId) + '&tab=memory',
+    build: (n, opts) => {
+      const deck = memCurrentDeck();
+      if (!deck) return null;
+      const guide = getSideboardGuide(deck);
+      const m = opts && opts.matchupId ? guide.find(g => g.id === opts.matchupId) : null;
+      const pairs = memBuildDeckPairs(currentDeckPairs, m, !!(opts && opts.goFirst));
+      return { pool: memBuildDeckPool(pairs), sequence: memBuildDeckSequence(pairs, n) };
+    },
+    setupRender: memRenderDeckSetup,
   });
-  memUpdateBanner();
 
   /* ── Analysis sub-tab switching ───────────────────────────────────── */
   function switchAnalysisSubTab(tab) {
@@ -6798,7 +6177,12 @@ Header lines, section labels, and footers are ignored automatically."></textarea
   renderList();
   const _deckFromUrl = new URLSearchParams(location.search).get('deck');
   if (_deckFromUrl) {
-    viewDeck(_deckFromUrl, { replace: true }).catch(() => showView('view-list', { replace: true }));
+    const _tabFromUrl = new URLSearchParams(location.search).get('tab');   // read before viewDeck rewrites the URL
+    viewDeck(_deckFromUrl, { replace: true }).then(() => {
+      if (_tabFromUrl === 'memory') {
+        document.getElementById('tab-btn-memory').click();
+      }
+    }).catch(() => showView('view-list', { replace: true }));
   } else {
     showView('view-list', { replace: true });
   }

@@ -1,0 +1,208 @@
+/*
+ * memory-game.css — styles for the shared Memory game (memory-game.js).
+ */
+/* ── Memory tab ── */
+.mem-setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  padding: 1.75rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.mem-setup-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic; font-size: 1.2rem; font-weight: 900;
+  color: var(--text); margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+}
+.mem-form-group { margin-bottom: 1.1rem; }
+.mem-form-label {
+  display: block;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.68rem; font-weight: 400; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.mem-go-toggle {
+  display: flex;
+  border: 1px solid var(--border-2); border-radius: 2px; overflow: hidden;
+}
+.mem-go-btn {
+  flex: 1; padding: 0.45rem 0.5rem;
+  background: var(--surface-2); color: var(--muted);
+  border: none; border-right: 1px solid var(--border-2);
+  font-family: 'DM Serif Text', Georgia, serif; font-size: 0.78rem;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.mem-go-btn:last-child { border-right: none; }
+.mem-go-btn:hover:not(.active) { background: var(--border); color: var(--text); }
+.mem-go-btn.active { background: var(--accent); color: #fff; }
+.mem-go-btn:active { transform: none; }
+.mem-btn-start {
+  width: 100%; padding: 0.75rem 1.25rem; margin-top: 0.5rem;
+  background: var(--accent); color: #fff;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.95rem; letter-spacing: 0.04em;
+  border: none; border-radius: 2px; cursor: pointer;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.mem-btn-start:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.mem-btn-start:active:not(:disabled) { transform: translateY(1px); }
+.mem-btn-start:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.mem-screen { display: none; }
+.mem-screen.active { display: block; }
+
+.mem-memorize-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 52vh;
+  cursor: pointer; user-select: none;
+}
+.mem-progress {
+  text-align: center; margin-bottom: 1.25rem;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.78rem; color: var(--accent);
+}
+.mem-card-anim {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+.mem-card-img {
+  width: min(240px, 65vw); border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.25); display: block;
+}
+.mem-card-name {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
+  font-size: 1rem; font-weight: 700; color: var(--text); text-align: center;
+}
+.mem-hint { margin-top: 1.25rem; font-size: 0.75rem; color: var(--muted-2); text-align: center; }
+
+.mem-slots-wrap { overflow-x: auto; margin-bottom: 1.5rem; padding-bottom: 0.25rem; }
+.mem-slots {
+  display: flex; gap: 0.5rem; min-width: max-content; padding: 0.5rem 0.25rem;
+}
+.mem-slot {
+  width: 62px; height: 88px;
+  background: var(--surface-2); border: 2px dashed var(--border-2); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: var(--muted-2); position: relative; flex-shrink: 0;
+  font-family: 'DM Serif Text', Georgia, serif; transition: border-color 0.2s;
+}
+.mem-slot.active { border-color: var(--accent); border-style: solid; }
+.mem-slot img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
+}
+.mem-slot-badge {
+  position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.mem-slot-badge.correct  { background: #4ade80; color: #fff; }
+.mem-slot-badge.incorrect { background: #e05040; color: #fff; }
+
+.mem-pool-label {
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.9rem;
+}
+.mem-pool { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+.mem-pool-card {
+  width: 120px; background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: 4px; overflow: hidden; cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.mem-pool-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.mem-pool-card img { width: 100%; display: block; }
+.mem-pool-card-name {
+  font-size: 0.68rem; color: var(--muted-2); padding: 0.25rem 0.35rem;
+  text-align: center; line-height: 1.3;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+}
+
+.mem-result-wrap { max-width: 640px; margin: 0 auto; padding-top: 0.5rem; }
+.mem-score-block { text-align: center; margin-bottom: 2rem; }
+.mem-score-label {
+  font-size: 0.72rem; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem;
+}
+.mem-score-value {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
+  font-weight: 900; font-size: clamp(2.5rem, 9vw, 4.5rem);
+  letter-spacing: -0.02em; line-height: 1;
+}
+.mem-score-num { color: var(--accent); }
+.mem-score-denom { color: var(--muted-2); font-size: 0.6em; }
+.mem-result-actions {
+  display: flex; gap: 0.75rem; justify-content: center;
+  margin-bottom: 2rem; flex-wrap: wrap;
+}
+.mem-btn-result {
+  padding: 0.65rem 1.5rem;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.9rem; letter-spacing: 0.03em; border-radius: 2px;
+  cursor: pointer; transition: opacity 0.15s, transform 0.15s; border: none;
+}
+.mem-btn-result:hover { transform: translateY(-2px); }
+.mem-btn-result.primary { background: var(--accent); color: #fff; }
+.mem-btn-result.secondary {
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border-2);
+}
+.mem-replay-label {
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+  font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--muted-2); margin-bottom: 0.9rem; text-align: center;
+}
+.mem-replay-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.mem-replay-card {
+  position: relative; width: 80px; border-radius: 10px;
+  overflow: hidden; border: 2px solid var(--border);
+}
+.mem-replay-card img { width: 100%; display: block; }
+.mem-replay-overlay { position: absolute; inset: 0; border-radius: 8px; opacity: 0.2; }
+.mem-replay-card.correct  .mem-replay-overlay { background: #4ade80; }
+.mem-replay-card.incorrect .mem-replay-overlay { background: #e05040; }
+.mem-replay-badge {
+  position: absolute; bottom: 3px; right: 3px; width: 20px; height: 20px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.mem-replay-card.correct  .mem-replay-badge { background: #4ade80; color: #fff; }
+.mem-replay-card.incorrect .mem-replay-badge { background: #e05040; color: #fff; }
+.mem-replay-num {
+  position: absolute; top: 3px; left: 4px;
+  font-family: 'DM Serif Text', Georgia, serif; font-size: 0.62rem;
+  color: rgba(255,255,255,0.85); text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+.mem-no-image {
+  width: 100%; height: 110px; background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; color: var(--muted-2); text-align: center;
+  padding: 0.25rem; line-height: 1.3;
+}
+.mem-countdown {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 900;
+  font-size: 3rem; color: var(--accent); text-align: center; margin: 0.9rem 0 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.mem-session-set { text-align: center; font-size: 0.82rem; color: var(--muted-2); margin-bottom: 0.9rem; }
+.mem-session-msg { text-align: center; font-size: 0.95rem; color: var(--text); }
+.mem-btn-abandon { width: 100%; margin-top: 0.6rem; }
+#mem-session-banner {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 160;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 0.7rem 1.1rem; cursor: pointer;
+  background: var(--surface, #252018); color: var(--text);
+  border-bottom: 1px solid var(--accent);
+  font-family: 'DM Serif Text', Georgia, serif; font-size: 0.85rem;
+}
+#mem-session-banner[hidden] { display: none; }
+#mem-session-banner.ready { background: var(--accent); color: #fff; }
+.mem-banner-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem-banner-cta { font-style: italic; flex-shrink: 0; text-decoration: underline; }
+.mem-empty-note {
+  font-size: 0.83rem; color: var(--muted); line-height: 1.65;
+  padding: 0.75rem 1rem;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 2px; margin-top: 0.5rem;
+  font-family: 'DM Serif Text', Georgia, serif; font-style: italic;
+}

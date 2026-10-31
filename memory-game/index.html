@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Game — My FaB Journey</title>
+  <script src="../nav.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:         #1c1814;
+      --surface:    #252018;
+      --surface-2:  #2e2820;
+      --border:     #3a3025;
+      --border-2:   #4a4030;
+      --accent:     #c4864a;
+      --text:       #e8dfd0;
+      --muted:      #7a6e60;
+      --muted-2:    #9a8a76;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; min-height: 100vh; }
+    .mg-page { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    .mg-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.9rem; margin-bottom: 0.35rem; }
+    .mg-subtitle { color: var(--muted-2); font-style: italic; font-size: 0.88rem; margin-bottom: 1.75rem; line-height: 1.5; }
+    .mg-loading { color: var(--muted-2); font-style: italic; font-size: 0.9rem; text-align: center; padding: 2rem 0; }
+  </style>
+</head>
+<body>
+<div class="mg-page">
+  <h1 class="mg-title">Memory Game</h1>
+  <p class="mg-subtitle">Pick a card set, memorize the cards in order, then come back after the timer to recall them.</p>
+  <div id="memory-root"></div>
+</div>
+
+<script src="../memory-game.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const DB_URL  = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/outbreak/json/english/card.json';
+  const SET_URL = DB_URL.replace(/card\.json$/, 'set.json');
+
+  // Main booster sets, listed under "Booster sets" in roughly release order.
+  // Every other set (Blitz/Armory decks, promos, …) goes under "Other products".
+  const BOOSTER_SET_IDS = [
+    'WTR', 'ARC', 'CRU', 'MON', 'ELE', 'EVR', 'DTD', 'EVO', 'OUT', 'DYN',
+    'UPR', 'HVY', 'MST', 'OMN', 'IAR', 'OBK',
+  ];
+
+  const setCards   = new Map();   // set_id -> Map(cardKey -> { id, name, imgUrl, color, pitch })
+  const setNameById = {};         // set_id -> display name
+  let setsReady    = false;
+  let lastSetName  = '';
+
+  const esc = MemoryGame.esc;
+
+  async function loadSets() {
+    const [cardsResp, setsResp] = await Promise.all([fetch(DB_URL), fetch(SET_URL)]);
+    if (!cardsResp.ok) throw new Error('HTTP ' + cardsResp.status + ' fetching card database');
+    const cards = await cardsResp.json();
+    if (setsResp.ok) for (const s of await setsResp.json()) setNameById[s.id] = s.name;
+
+    for (const card of cards) {
+      const pitchNum = card.pitch !== '' ? parseInt(card.pitch, 10) : null;
+      const color = (card.color || '').toLowerCase();
+      const key = card.name + '_' + color;
+      for (const p of (card.printings || [])) {
+        if (!p.set_id) continue;
+        let bucket = setCards.get(p.set_id);
+        if (!bucket) { bucket = new Map(); setCards.set(p.set_id, bucket); }
+        const prev = bucket.get(key);
+        if (prev && prev.imgUrl) continue;
+        bucket.set(key, {
+          id: key, name: card.name, imgUrl: p.image_url || null, color,
+          pitch: isNaN(pitchNum) ? null : pitchNum,
+        });
+      }
+    }
+    setsReady = true;
+  }
+
+  function groupSets() {
+    const booster = [], other = [];
+    for (const [id, cards] of setCards) {
+      if (!cards.size) continue;
+      const opt = { id, name: setNameById[id] || id, count: cards.size };
+      if (BOOSTER_SET_IDS.includes(id)) booster.push(opt); else other.push(opt);
+    }
+    booster.sort((a, b) => BOOSTER_SET_IDS.indexOf(a.id) - BOOSTER_SET_IDS.indexOf(b.id));
+    other.sort((a, b) => a.name.localeCompare(b.name));
+    return { booster, other };
+  }
+
+  function poolFor(setId) {
+    const bucket = setCards.get(setId);
+    if (!bucket) return [];
+    const pitchRank = p => (p === 3 ? 0 : p === 2 ? 1 : p === 1 ? 2 : 3);
+    return [...bucket.values()].sort((a, b) => {
+      const d = pitchRank(a.pitch) - pitchRank(b.pitch);
+      return d !== 0 ? d : a.name.localeCompare(b.name);
+    });
+  }
+
+  function renderSetup(el, api) {
+    if (!setsReady) {
+      el.innerHTML = '<div class="mem-setup-card"><div class="mem-setup-title">Memory Game</div><div class="mem-loading" style="font-style:italic;text-align:center;color:var(--muted-2);padding:1.5rem 0">Loading card sets…</div></div>';
+      return;
+    }
+    const { booster, other } = groupSets();
+    const optHtml = s => `<option value="${esc(s.id)}">${esc(s.name)} (${s.count} cards)</option>`;
+    const groupsHtml =
+      (booster.length ? `<optgroup label="Booster sets">${booster.map(optHtml).join('')}</optgroup>` : '') +
+      (other.length   ? `<optgroup label="Other products">${other.map(optHtml).join('')}</optgroup>` : '');
+    const inputStyle = "background:var(--bg);border:1px solid var(--border-2);border-radius:2px;color:var(--text);font-family:'DM Serif Text',Georgia,serif;font-size:0.88rem;padding:0.65rem 1rem;width:100%;outline:none;";
+
+    el.innerHTML = `
+      <div class="mem-setup-card">
+        <div class="mem-setup-title">Memory Game</div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-set-sel">Card set</label>
+          <select id="mem-set-sel">
+            <option value="">Choose a set…</option>
+            ${groupsHtml}
+          </select>
+        </div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
+          <input type="number" id="mem-count-inp" min="1" value="10" style="${inputStyle}" />
+        </div>
+        <div class="mem-form-group">
+          <label class="mem-form-label" for="mem-delay-inp">Test me after (minutes)</label>
+          <input type="number" id="mem-delay-inp" min="1" max="${MemoryGame.maxDelay}" value="${api.defaultDelay}" style="${inputStyle}" />
+        </div>
+        <button class="mem-btn-start" id="mem-btn-start" type="button" disabled>Start</button>
+      </div>`;
+
+    const setSel   = document.getElementById('mem-set-sel');
+    const countInp = document.getElementById('mem-count-inp');
+    const delayInp = document.getElementById('mem-delay-inp');
+    const startBtn = document.getElementById('mem-btn-start');
+
+    function updateLimits(clamp) {
+      const max = setSel.value ? poolFor(setSel.value).length : 0;
+      countInp.max = max || 1;
+      if (clamp && max && parseInt(countInp.value, 10) > max) countInp.value = max;
+      const n = parseInt(countInp.value, 10);
+      const d = parseInt(delayInp.value, 10);
+      startBtn.disabled = !max || !(n >= 1 && n <= max) || !MemoryGame.validDelay(d);
+    }
+
+    setSel.addEventListener('change', () => updateLimits(true));
+    countInp.addEventListener('input', () => updateLimits(false));
+    delayInp.addEventListener('input', () => updateLimits(false));
+    startBtn.addEventListener('click', () => {
+      const n = parseInt(countInp.value, 10);
+      const d = parseInt(delayInp.value, 10);
+      if (!setSel.value || !(n >= 1) || !MemoryGame.validDelay(d)) return;
+      api.start(n, { setId: setSel.value }, d);
+    });
+    updateLimits(false);
+  }
+
+  MemoryGame.mount(document.getElementById('memory-root'), {
+    label: () => lastSetName || 'Memory test',
+    returnUrl: () => MemoryGame.baseUrl + 'memory-game/',
+    build: (n, opts) => {
+      if (!opts || !opts.setId) return null;
+      const pool = poolFor(opts.setId);
+      lastSetName = setNameById[opts.setId] || opts.setId;
+      return { pool, sequence: MemoryGame.sample(pool, n) };
+    },
+    setupRender: renderSetup,
+  });
+
+  loadSets()
+    .then(() => MemoryGame.refresh())
+    .catch(e => {
+      const root = document.getElementById('memory-root');
+      root.innerHTML = '<div class="mem-setup-card"><div class="mem-empty-note">Could not load the card database: ' + esc(e.message) + '</div></div>';
+    });
+})();
+</script>
+</body>
+</html>
