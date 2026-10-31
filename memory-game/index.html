@@ -23,7 +23,7 @@
     }
     body { background: var(--bg); color: var(--text); font-family: 'DM Serif Text', Georgia, serif; min-height: 100vh; }
     .mg-page { width: 100%; max-width: 640px; min-width: 0; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-    .mg-page select, .mg-page input { width: 100%; max-width: 100%; min-width: 0; }
+    .mg-page select, .mg-page input { width: 100%; max-width: 100%; min-width: 0; font-size: 16px; text-overflow: ellipsis; }
     .mg-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.9rem; margin-bottom: 0.35rem; }
     .mg-subtitle { color: var(--muted-2); font-style: italic; font-size: 0.88rem; margin-bottom: 1.75rem; line-height: 1.5; }
     .mg-loading { color: var(--muted-2); font-style: italic; font-size: 0.9rem; text-align: center; padding: 2rem 0; }
@@ -112,7 +112,7 @@
       return;
     }
     const { booster, other } = groupSets();
-    const optHtml = s => `<option value="${esc(s.id)}">${esc(s.name)} (${s.count} cards)</option>`;
+    const optHtml = s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`;
     const groupsHtml =
       (booster.length ? `<optgroup label="Booster sets">${booster.map(optHtml).join('')}</optgroup>` : '') +
       (other.length   ? `<optgroup label="Other products">${other.map(optHtml).join('')}</optgroup>` : '');
@@ -127,6 +127,7 @@
             <option value="">Choose a set…</option>
             ${groupsHtml}
           </select>
+          <div class="mem-hint" id="mem-set-count" style="text-align:left;margin-top:0.45rem;min-height:1em"></div>
         </div>
         <div class="mem-form-group">
           <label class="mem-form-label">Players</label>
@@ -153,6 +154,7 @@
 
     function updateLimits(clamp) {
       const max = setSel.value ? poolFor(setSel.value).length : 0;
+      document.getElementById('mem-set-count').textContent = max ? max + ' cards in this set' : '';
       countInp.max = max || 1;
       if (clamp && max && parseInt(countInp.value, 10) > max) countInp.value = max;
       const n = parseInt(countInp.value, 10);
