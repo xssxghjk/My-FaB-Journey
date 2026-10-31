@@ -2559,7 +2559,10 @@ Header lines, section labels, and footers are ignored automatically."></textarea
   'use strict';
 
   const DB_URL = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/omens-of-the-third-age/json/english/card.json';
+  const SET_URL = DB_URL.replace(/card\.json$/, 'set.json');
   let db = null;
+  let setCards = new Map();   // set_id -> Map(cardKey -> memory-game card)
+  const setNameById = {};     // set_id -> display name
   let currentReplaceEntry = null;
   let currentReplaceNewEntry = null;
   let addCardNewEntry = null;
@@ -2658,7 +2661,12 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     updateLoading('Parsing card data…');
     const cards = await resp.json();
     updateLoading('Indexing cards…');
+    try {
+      const setResp = await fetch(SET_URL);
+      if (setResp.ok) for (const s of await setResp.json()) setNameById[s.id] = s.name;
+    } catch { /* set names are cosmetic: fall back to set codes */ }
     db = new Map();
+    setCards = new Map();
     for (const card of cards) {
       const printing  = card.printings && card.printings.length ? card.printings[0] : null;
       const imgUrl    = printing ? (printing.image_url || null) : null;
@@ -2682,6 +2690,17 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       const nameLow = card.name.toLowerCase();
       if (entry.color) db.set(`${nameLow}_${entry.color}`, entry);
       if (!db.has(nameLow)) db.set(nameLow, entry);
+
+      /* Per-set card lists for the memory game: one card per name + colour per set */
+      for (const p of (card.printings || [])) {
+        if (!p.set_id) continue;
+        let bucket = setCards.get(p.set_id);
+        if (!bucket) { bucket = new Map(); setCards.set(p.set_id, bucket); }
+        const key = card.name + '_' + entry.color;
+        const prev = bucket.get(key);
+        if (prev && prev.imgUrl) continue;
+        bucket.set(key, { id: key, name: card.name, imgUrl: p.image_url || null, color: entry.color, pitch: entry.pitch });
+      }
     }
   }
 
@@ -2876,8 +2895,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     recallAnswers: [],
     recallLocked: false,
     cardCount: 10,
-    selectedMatchupId: null,
-    goFirst: true,
+    setId: null,
   };
 
   function renderDetail(deck, pairs) {
@@ -5791,8 +5809,7 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     document.getElementById('tab-memory').style.display = '';
     if (!memRendered) {
       memRendered = true;
-      const deck = loadDecks().find(d => d.id === currentDeckId);
-      if (deck) memRenderSetup(deck, currentDeckPairs);
+      memRenderSetup();
     }
   });
 
@@ -5804,107 +5821,85 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     if (el) { el.classList.add('active'); memState.screen = name; }
   }
 
-  function memBuildDeckPairs(allPairs, matchup, goFirst) {
-    const pitchPairs = allPairs.filter(p => p.card && p.card.color);
-    if (!matchup) return pitchPairs;
+  // Main booster sets, listed under "Booster sets" in roughly release order.
+  // Every other set in the card database (Blitz/Armory decks, promos, …) goes
+  // under "Other products". Add a set's code here to move it into the first group.
+  const MEM_BOOSTER_SET_IDS = [
+    'WTR', 'ARC', 'CRU', 'MON', 'ELE', 'EVR', 'DTD', 'EVO', 'OUT', 'DYN',
+    'UPR', 'HVY', 'MST', 'OMN',
+  ];
 
-    const cutsRaw = matchup.splitSideboard
-      ? (goFirst ? (matchup.cardsOutFirstRaw || '') : (matchup.cardsOutSecondRaw || ''))
-      : (matchup.cardsOutRaw || '');
-
-    const cuts = parseDecklist(cutsRaw);
-    if (!cuts.length) return pitchPairs;
-
-    const cutMap = {};
-    for (const c of cuts) cutMap[c.name.toLowerCase() + '|' + (c.hint || '')] = c.qty;
-
-    return pitchPairs.map(p => {
-      const key = p.entry.name.toLowerCase() + '|' + (p.entry.hint || '');
-      const cutQty = cutMap[key] || 0;
-      if (!cutQty) return p;
-      const newQty = p.entry.qty - cutQty;
-      if (newQty <= 0) return null;
-      return { entry: { ...p.entry, qty: newQty }, card: p.card };
-    }).filter(Boolean);
+  function memGetSetOptions() {
+    const booster = [], other = [];
+    for (const [id, cards] of setCards) {
+      if (!cards.size) continue;
+      const opt = { id, name: setNameById[id] || id, count: cards.size };
+      if (MEM_BOOSTER_SET_IDS.includes(id)) booster.push(opt); else other.push(opt);
+    }
+    booster.sort((a, b) => MEM_BOOSTER_SET_IDS.indexOf(a.id) - MEM_BOOSTER_SET_IDS.indexOf(b.id));
+    other.sort((a, b) => a.name.localeCompare(b.name));
+    return { booster, other };
   }
 
-  function memBuildSequence(deckPairs, n) {
-    const weighted = [];
-    for (const { entry, card } of deckPairs) {
-      const multiplier = card.color === 'blue' ? 3 : card.color === 'yellow' ? 2 : 1;
-      const cardObj = {
-        id: card.name + '_' + card.color,
-        name: card.name,
-        imgUrl: card.imgUrl || null,
-        color: card.color,
-        pitch: card.pitch,
-      };
-      for (let i = 0; i < entry.qty * multiplier; i++) weighted.push(cardObj);
-    }
-    for (let i = weighted.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = weighted[i]; weighted[i] = weighted[j]; weighted[j] = tmp;
-    }
-    return weighted.slice(0, Math.min(n, weighted.length));
-  }
-
-  function memBuildPool(deckPairs) {
-    const seen = new Set();
-    const pool = [];
-    for (const { card } of deckPairs) {
-      const id = card.name + '_' + card.color;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      pool.push({ id, name: card.name, imgUrl: card.imgUrl || null, color: card.color, pitch: card.pitch });
-    }
+  function memBuildPool(setId) {
+    const bucket = setCards.get(setId);
+    if (!bucket) return [];
     const pitchRank = p => (p === 3 ? 0 : p === 2 ? 1 : p === 1 ? 2 : 3);
-    pool.sort((a, b) => {
+    return [...bucket.values()].sort((a, b) => {
       const d = pitchRank(a.pitch) - pitchRank(b.pitch);
       return d !== 0 ? d : a.name.localeCompare(b.name);
     });
-    return pool;
   }
 
-  function memRenderSetup(deck, allPairs) {
-    const guide = getSideboardGuide(deck);
-    const pitchPairs = allPairs.filter(p => p.card && p.card.color);
+  function memBuildSequence(pool, n) {
+    const shuffled = pool.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+    }
+    return shuffled.slice(0, Math.min(n, shuffled.length));
+  }
 
-    const maxCards = pitchPairs.reduce((s, p) => {
-      const m = p.card.color === 'blue' ? 3 : p.card.color === 'yellow' ? 2 : 1;
-      return s + p.entry.qty * m;
-    }, 0);
+  function memStartGame(setId, n) {
+    const pool = memBuildPool(setId);
+    memState.setId        = setId;
+    memState.cardCount    = n;
+    memState.pool         = pool;
+    memState.sequence     = memBuildSequence(pool, n);
+    memState.memorizeIndex = 0;
+    memState.recallIndex   = 0;
+    memState.recallAnswers = new Array(memState.sequence.length).fill(null);
+    memState.recallLocked  = false;
+    memShowScreen('memorize');
+    memRenderMemorize();
+  }
 
-    const matchupOpts = guide.map(m => {
-      return `<option value="${esc(m.id)}">vs ${esc(m.hero)}</option>`;
-    }).join('');
-
-    const savedCount = Math.min(memState.cardCount, maxCards) || Math.min(10, maxCards);
+  function memRenderSetup() {
+    const { booster, other } = memGetSetOptions();
+    const hasSets = booster.length + other.length > 0;
+    const optHtml = s => `<option value="${esc(s.id)}">${esc(s.name)} (${s.count} cards)</option>`;
+    const groupsHtml =
+      (booster.length ? `<optgroup label="Booster sets">${booster.map(optHtml).join('')}</optgroup>` : '') +
+      (other.length   ? `<optgroup label="Other products">${other.map(optHtml).join('')}</optgroup>` : '');
 
     const container = document.getElementById('memory-content');
     container.innerHTML = `
       <div id="mem-screen-setup" class="mem-screen active">
         <div class="mem-setup-card">
           <div class="mem-setup-title">Memory Game</div>
-          ${pitchPairs.length === 0 ? `<div class="mem-empty-note">No pitch deck cards found. Import a deck with red, yellow, or blue cards to use the memory game.</div>` : `
+          ${!hasSets ? `<div class="mem-empty-note">No card sets found. The card database may not have loaded.</div>` : `
           <div class="mem-form-group">
-            <label class="mem-form-label" for="mem-matchup-sel">Sideboard</label>
-            <select id="mem-matchup-sel">
-              <option value="">Full deck — no sideboard</option>
-              ${matchupOpts}
+            <label class="mem-form-label" for="mem-set-sel">Card set</label>
+            <select id="mem-set-sel">
+              <option value="">Choose a set…</option>
+              ${groupsHtml}
             </select>
-          </div>
-          <div class="mem-form-group" id="mem-go-group" style="display:none">
-            <label class="mem-form-label">Turn order</label>
-            <div class="mem-go-toggle">
-              <button class="mem-go-btn active" id="mem-go-first" type="button">Go First</button>
-              <button class="mem-go-btn" id="mem-go-second" type="button">Go Second</button>
-            </div>
           </div>
           <div class="mem-form-group">
             <label class="mem-form-label" for="mem-count-inp">Cards to memorize</label>
-            <input type="number" id="mem-count-inp" min="1" max="${maxCards}" value="${savedCount}" style="background:var(--bg);border:1px solid var(--border-2);border-radius:2px;color:var(--text);font-family:'DM Serif Text',Georgia,serif;font-size:0.88rem;padding:0.65rem 1rem;width:100%;outline:none;" />
+            <input type="number" id="mem-count-inp" min="1" value="${memState.cardCount}" style="background:var(--bg);border:1px solid var(--border-2);border-radius:2px;color:var(--text);font-family:'DM Serif Text',Georgia,serif;font-size:0.88rem;padding:0.65rem 1rem;width:100%;outline:none;" />
           </div>
-          <button class="mem-btn-start" id="mem-btn-start" type="button">Start</button>`}
+          <button class="mem-btn-start" id="mem-btn-start" type="button" disabled>Start</button>`}
         </div>
       </div>
       <div id="mem-screen-memorize" class="mem-screen"></div>
@@ -5912,71 +5907,31 @@ Header lines, section labels, and footers are ignored automatically."></textarea
       <div id="mem-screen-result"   class="mem-screen"></div>
     `;
 
-    if (pitchPairs.length === 0) return;
+    if (!hasSets) return;
 
-    const matchupSel = document.getElementById('mem-matchup-sel');
-    const goGroup    = document.getElementById('mem-go-group');
-    const goFirst    = document.getElementById('mem-go-first');
-    const goSecond   = document.getElementById('mem-go-second');
-    const countInp   = document.getElementById('mem-count-inp');
-    const startBtn   = document.getElementById('mem-btn-start');
+    const setSel   = document.getElementById('mem-set-sel');
+    const countInp = document.getElementById('mem-count-inp');
+    const startBtn = document.getElementById('mem-btn-start');
 
-    function getSelectedMatchup() {
-      const id = matchupSel.value;
-      return id ? guide.find(m => m.id === id) : null;
-    }
-
-    function updateGoGroup() {
-      const m = getSelectedMatchup();
-      goGroup.style.display = (m && m.splitSideboard) ? '' : 'none';
-    }
-
-    function updateMaxCount() {
-      const m = getSelectedMatchup();
-      const pairs = memBuildDeckPairs(allPairs, m, goFirst.classList.contains('active'));
-      const max = pairs.reduce((s, p) => {
-        const mul = p.card.color === 'blue' ? 3 : p.card.color === 'yellow' ? 2 : 1;
-        return s + p.entry.qty * mul;
-      }, 0);
+    function updateLimits(clampCount) {
+      const id  = setSel.value;
+      const max = id ? memBuildPool(id).length : 0;
       countInp.max = max || 1;
-      if (parseInt(countInp.value, 10) > max) countInp.value = Math.min(10, max);
-      startBtn.disabled = !max || isNaN(parseInt(countInp.value, 10)) || parseInt(countInp.value, 10) < 1;
+      if (clampCount && max && parseInt(countInp.value, 10) > max) countInp.value = max;
+      const n = parseInt(countInp.value, 10);
+      startBtn.disabled = !max || !(n >= 1 && n <= max);
     }
 
-    matchupSel.addEventListener('change', () => { updateGoGroup(); updateMaxCount(); });
-    countInp.addEventListener('input', updateMaxCount);
-
-    goFirst.addEventListener('click', () => {
-      goFirst.classList.add('active'); goSecond.classList.remove('active');
-      updateMaxCount();
-    });
-    goSecond.addEventListener('click', () => {
-      goSecond.classList.add('active'); goFirst.classList.remove('active');
-      updateMaxCount();
-    });
+    setSel.addEventListener('change', () => updateLimits(true));
+    countInp.addEventListener('input', () => updateLimits(false));
 
     startBtn.addEventListener('click', () => {
-      const m = getSelectedMatchup();
-      const isGoFirst = goFirst.classList.contains('active');
-      const n = parseInt(countInp.value, 10) || 10;
-      memState.cardCount = n;
-      memState.selectedMatchupId = m ? m.id : null;
-      memState.goFirst = isGoFirst;
-
-      const deckPairs = memBuildDeckPairs(allPairs, m, isGoFirst);
-      memState.sequence = memBuildSequence(deckPairs, n);
-      memState.pool     = memBuildPool(deckPairs);
-
-      if (!memState.sequence.length) {
-        alert('No cards available after applying sideboard cuts.');
-        return;
-      }
-      memState.memorizeIndex = 0;
-      memShowScreen('memorize');
-      memRenderMemorize();
+      const n = parseInt(countInp.value, 10);
+      if (!setSel.value || !(n >= 1)) return;
+      memStartGame(setSel.value, n);
     });
 
-    updateMaxCount();
+    updateLimits(false);
   }
 
   function memRenderMemorize() {
@@ -6162,25 +6117,11 @@ Header lines, section labels, and footers are ignored automatically."></textarea
     el.innerHTML = html;
 
     document.getElementById('mem-btn-again').addEventListener('click', () => {
-      const deck = loadDecks().find(d => d.id === currentDeckId);
-      if (!deck) return;
-      const guide  = getSideboardGuide(deck);
-      const m      = memState.selectedMatchupId ? guide.find(g => g.id === memState.selectedMatchupId) : null;
-      const pairs  = memBuildDeckPairs(currentDeckPairs, m, memState.goFirst);
-      memState.sequence      = memBuildSequence(pairs, memState.cardCount);
-      memState.pool          = memBuildPool(pairs);
-      memState.memorizeIndex = 0;
-      memState.recallIndex   = 0;
-      memState.recallAnswers = new Array(memState.sequence.length).fill(null);
-      memState.recallLocked  = false;
-      memShowScreen('memorize');
-      memRenderMemorize();
+      memStartGame(memState.setId, memState.cardCount);
     });
 
     document.getElementById('mem-btn-back-setup').addEventListener('click', () => {
-      const deck = loadDecks().find(d => d.id === currentDeckId);
-      if (!deck) return;
-      memRenderSetup(deck, currentDeckPairs);
+      memRenderSetup();
       memShowScreen('setup');
     });
 
